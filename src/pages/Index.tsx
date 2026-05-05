@@ -90,7 +90,7 @@ function HeroSlider() {
 
       <FloatingShapes className="z-10" />
 
-      <div className="relative z-20 h-full container flex flex-col justify-center items-start text-white">
+      <div className="relative z-20 h-full container flex flex-col justify-center items-center text-white text-center">
         <AnimatePresence mode="wait">
           <motion.div
             key={i}
@@ -98,7 +98,7 @@ function HeroSlider() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
             transition={{ duration: 0.7, ease: "easeOut" }}
-            className="max-w-3xl"
+            className="max-w-3xl flex flex-col items-center"
           >
             <span className="inline-block px-4 py-1.5 rounded-full bg-white/15 backdrop-blur border border-white/20 text-sm font-semibold mb-5">
               ✨ Welcome to {SITE.name}
@@ -110,7 +110,7 @@ function HeroSlider() {
               {s.titleEn}
             </h2>
             <p className="mt-5 text-lg md:text-2xl opacity-95 max-w-xl">{s.sub}</p>
-            <div className="mt-8 flex flex-wrap gap-3">
+            <div className="mt-8 flex flex-wrap gap-3 justify-center">
               {s.ctas.map((c, k) =>
                 c.primary ? (
                   c.to ? (
@@ -133,7 +133,7 @@ function HeroSlider() {
         </AnimatePresence>
       </div>
 
-      <div className="absolute bottom-8 inset-x-0 z-20 container flex items-center justify-between">
+      <div className="absolute bottom-8 inset-x-0 z-20 container flex justify-center">
         <div className="flex gap-2">
           {slides.map((_, k) => (
             <button
@@ -144,15 +144,13 @@ function HeroSlider() {
             />
           ))}
         </div>
-        <div className="hidden md:flex gap-2">
-          <button onClick={prev} className="w-12 h-12 rounded-full glass grid place-items-center text-white hover:bg-white hover:text-primary transition">
-            <ChevronLeft />
-          </button>
-          <button onClick={next} className="w-12 h-12 rounded-full glass grid place-items-center text-white hover:bg-white hover:text-primary transition">
-            <ChevronRight />
-          </button>
-        </div>
       </div>
+      <button onClick={prev} className="hidden md:grid absolute left-4 top-1/2 -translate-y-1/2 z-20 w-12 h-12 rounded-full glass place-items-center text-white hover:bg-white hover:text-primary transition">
+        <ChevronLeft />
+      </button>
+      <button onClick={next} className="hidden md:grid absolute right-4 top-1/2 -translate-y-1/2 z-20 w-12 h-12 rounded-full glass place-items-center text-white hover:bg-white hover:text-primary transition">
+        <ChevronRight />
+      </button>
     </section>
   );
 }
