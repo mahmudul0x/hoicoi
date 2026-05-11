@@ -9,12 +9,16 @@ jobs:
   ping:
     runs-on: ubuntu-latest
     steps:
-      - name: Ping Appwrite Health
+      - name: Ping Appwrite
         run: |
-          curl -f https://sgp.cloud.appwrite.io/v1/health \
-            -H "X-Appwrite-Project: 6a019af50019dcd59782"
-
-      - name: Ping Products Collection
-        run: |
-          curl -f "https://sgp.cloud.appwrite.io/v1/databases/6a019b97002972b3ab7c/collections/products/documents?limit=1" \
-            -H "X-Appwrite-Project: 6a019af50019dcd59782"
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
+            "https://sgp.cloud.appwrite.io/v1/databases/6a019b97002972b3ab7c/collections/products/documents?limit=1" \
+            -H "X-Appwrite-Project: 6a019af50019dcd59782" \
+            -H "X-Appwrite-Key: ${{ secrets.APPWRITE_API_KEY }}")
+          echo "Response status: $STATUS"
+          if [ "$STATUS" -ge 200 ] && [ "$STATUS" -lt 500 ]; then
+            echo "Appwrite is alive!"
+          else
+            echo "Unexpected status: $STATUS"
+            exit 1
+          fi
