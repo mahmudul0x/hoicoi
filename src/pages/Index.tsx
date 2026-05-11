@@ -1,10 +1,12 @@
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Link } from "react-router-dom";
-import { Phone, MapPin, Star, ChevronLeft, ChevronRight, Sparkles, Shield, Smile, Cake, PartyPopper, Users, Wand2, ArrowRight, Quote } from "lucide-react";
+import { Phone, MapPin, Star, ChevronLeft, ChevronRight, Sparkles, Shield, Smile, Cake, PartyPopper, Users, Wand2, ArrowRight, Quote, X, Tag } from "lucide-react";
 import { SITE } from "@/lib/site";
 import Counter from "@/components/Counter";
 import FloatingShapes from "@/components/FloatingShapes";
+import { fetchActiveOffer, fetchPopupOffer, type Offer } from "@/lib/appwrite";
+import { usePageView } from "@/hooks/useAnalytics";
 import hero1 from "@/assets/hero-1.jpg";
 import hero2 from "@/assets/hero-2.jpg";
 import hero3 from "@/assets/hero-3.jpg";
@@ -63,13 +65,33 @@ const testimonials = [
 
 function HeroSlider() {
   const [i, setI] = useState(0);
+  const [offerSlide, setOfferSlide] = useState<Offer | null>(null);
+
   useEffect(() => {
-    const t = setInterval(() => setI((p) => (p + 1) % slides.length), 6000);
-    return () => clearInterval(t);
+    fetchActiveOffer().then((o) => {
+      if (o && o.image) setOfferSlide(o);
+    });
   }, []);
-  const next = () => setI((p) => (p + 1) % slides.length);
-  const prev = () => setI((p) => (p - 1 + slides.length) % slides.length);
-  const s = slides[i];
+
+  const allSlides = offerSlide
+    ? [...slides, {
+        img: offerSlide.image!,
+        title: offerSlide.badge || "🎉 Special Offer",
+        titleEn: offerSlide.title,
+        sub: offerSlide.description || "",
+        ctas: [{ label: "Call Now", href: `tel:${SITE.phone}` }],
+        isOffer: true,
+      }]
+    : slides;
+
+  useEffect(() => {
+    const t = setInterval(() => setI((p) => (p + 1) % allSlides.length), 6000);
+    return () => clearInterval(t);
+  }, [allSlides.length]);
+
+  const next = () => setI((p) => (p + 1) % allSlides.length);
+  const prev = () => setI((p) => (p - 1 + allSlides.length) % allSlides.length);
+  const s = allSlides[i];
 
   return (
     <section className="relative h-[100svh] min-h-[600px] w-full overflow-hidden">
@@ -100,9 +122,15 @@ function HeroSlider() {
             transition={{ duration: 0.7, ease: "easeOut" }}
             className="max-w-3xl flex flex-col items-center"
           >
-            <span className="inline-block px-4 py-1.5 rounded-full bg-white/15 backdrop-blur border border-white/20 text-sm font-semibold mb-5">
-              ✨ Welcome to {SITE.name}
-            </span>
+            {"isOffer" in s && s.isOffer ? (
+              <span className="inline-block px-4 py-1.5 rounded-full bg-accent/80 backdrop-blur border border-white/20 text-sm font-bold mb-5 animate-pulse">
+                🎉 Special Offer
+              </span>
+            ) : (
+              <span className="inline-block px-4 py-1.5 rounded-full bg-white/15 backdrop-blur border border-white/20 text-sm font-semibold mb-5">
+                ✨ Welcome to {SITE.name}
+              </span>
+            )}
             <h1 className="font-display text-5xl sm:text-6xl md:text-8xl font-bold leading-[1.05] drop-shadow-2xl">
               {s.title}
             </h1>
@@ -135,7 +163,7 @@ function HeroSlider() {
 
       <div className="absolute bottom-8 inset-x-0 z-20 container flex justify-center">
         <div className="flex gap-2">
-          {slides.map((_, k) => (
+          {allSlides.map((_, k) => (
             <button
               key={k}
               onClick={() => setI(k)}
@@ -482,7 +510,110 @@ function ContactCTA() {
   );
 }
 
+function OfferPopup() {
+  const [offer, setOffer] = useState<Offer | null>(null);
+  const [open, setOpen] = useState(false);
+
+  useEffect(() => {
+    fetchPopupOffer().then((o) => {
+      if (o) { setOffer(o); setTimeout(() => setOpen(true), 1500); }
+    });
+  }, []);
+
+  if (!offer) return null;
+  const bg = offer.bgColor || "from-primary to-pink";
+
+  return (
+    <AnimatePresence>
+      {open && (
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+          className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4"
+          onClick={() => setOpen(false)}
+        >
+          <motion.div initial={{ scale: 0.85, opacity: 0, y: 30 }} animate={{ scale: 1, opacity: 1, y: 0 }} exit={{ scale: 0.85, opacity: 0, y: 30 }}
+            transition={{ type: "spring", damping: 20 }}
+            onClick={(e) => e.stopPropagation()}
+            className="relative w-full max-w-md bg-card rounded-3xl overflow-hidden shadow-fun border border-border/50"
+          >
+            {offer.image && (
+              <div className="relative aspect-video w-full overflow-hidden">
+                <img src={offer.image} alt={offer.title} className="w-full h-full object-cover" />
+                <div className={`absolute inset-0 bg-gradient-to-t ${bg} opacity-40`} />
+              </div>
+            )}
+            <div className={`${!offer.image ? `bg-gradient-to-br ${bg} p-10 text-white` : "p-6"}`}>
+              {offer.badge && (
+                <span className={`inline-block px-3 py-1 rounded-full text-xs font-bold mb-3 ${offer.image ? "bg-primary/10 text-primary" : "bg-white/20 text-white"}`}>
+                  {offer.badge}
+                </span>
+              )}
+              <h2 className={`font-display text-2xl font-bold mb-2 ${offer.image ? "" : "text-white"}`}>{offer.title}</h2>
+              {offer.description && (
+                <p className={`text-sm leading-relaxed mb-5 ${offer.image ? "text-muted-foreground" : "text-white/90"}`}>{offer.description}</p>
+              )}
+              <div className="flex gap-3">
+                <a href={`tel:${SITE.phone}`}
+                  className="flex-1 inline-flex items-center justify-center gap-2 py-3 rounded-xl bg-gradient-primary text-primary-foreground font-bold text-sm shadow-fun hover:opacity-90 transition">
+                  <Phone className="w-4 h-4" /> Call Now
+                </a>
+                <button onClick={() => setOpen(false)}
+                  className="px-5 py-3 rounded-xl bg-muted font-semibold text-sm hover:bg-muted/70 transition">
+                  Close
+                </button>
+              </div>
+            </div>
+            <button onClick={() => setOpen(false)}
+              className="absolute top-3 right-3 w-8 h-8 rounded-full bg-black/40 backdrop-blur text-white grid place-items-center hover:bg-black/60 transition">
+              <X className="w-4 h-4" />
+            </button>
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+}
+
+function OfferBanner() {
+  const [offer, setOffer] = useState<Offer | null>(null);
+  const [dismissed, setDismissed] = useState(false);
+
+  useEffect(() => {
+    fetchActiveOffer().then(setOffer);
+  }, []);
+
+  if (!offer || dismissed) return null;
+
+  const bg = offer.bgColor || "from-primary to-pink";
+
+  return (
+    <motion.div
+      initial={{ y: -60, opacity: 0 }}
+      animate={{ y: 0, opacity: 1 }}
+      exit={{ y: -60, opacity: 0 }}
+      className={`w-full bg-gradient-to-r ${bg} text-white py-2.5 px-4 relative z-50`}
+    >
+      <div className="container flex items-center justify-center gap-3 text-sm font-semibold text-center">
+        {offer.badge && (
+          <span className="hidden sm:inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-white/20 text-xs font-bold shrink-0">
+            <Tag className="w-3 h-3" /> {offer.badge}
+          </span>
+        )}
+        <span className="font-bold">{offer.title}</span>
+        {offer.description && (
+          <span className="hidden md:inline opacity-90">— {offer.description}</span>
+        )}
+      </div>
+      <button onClick={() => setDismissed(true)}
+        className="absolute right-3 top-1/2 -translate-y-1/2 w-6 h-6 rounded-full bg-white/20 hover:bg-white/30 grid place-items-center transition">
+        <X className="w-3.5 h-3.5" />
+      </button>
+    </motion.div>
+  );
+}
+
 const Index = () => {
+  usePageView("home");
+
   useEffect(() => {
     document.title = "Best Kids Play Zone in Dinajpur | Hoichoi Khelaghor";
     const meta = document.querySelector('meta[name="description"]') || (() => {
@@ -496,6 +627,8 @@ const Index = () => {
 
   return (
     <>
+      <OfferPopup />
+      <OfferBanner />
       <HeroSlider />
       <QuickInfo />
       <AboutPreview />

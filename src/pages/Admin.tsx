@@ -4,12 +4,16 @@ import {
   Plus, Pencil, Trash2, LogOut, X, Save,
   ShieldCheck, Search, Loader2, Upload, ImageIcon,
   Tag, Package, LayoutGrid, List, CheckCircle2, Mail, Lock,
-  UserPlus, ExternalLink, Users, KeyRound,
+  UserPlus, ExternalLink, Users, KeyRound, Image, Megaphone,
+  BarChart2, TrendingUp, Eye, Globe, ToggleLeft, ToggleRight,
 } from "lucide-react";
 import {
-  type Product,
+  type Product, type GalleryPhoto, type Offer,
   fetchProducts, createProduct, updateProduct, deleteProduct,
   loginAdmin, logoutAdmin, getCurrentUser,
+  fetchGallery, createGalleryPhoto, updateGalleryPhoto, deleteGalleryPhoto,
+  fetchAllOffers, createOffer, updateOffer, deleteOffer,
+  fetchAnalyticsSummary,
 } from "@/lib/appwrite";
 import { uploadToCloudinary } from "@/lib/cloudinary";
 
@@ -53,7 +57,30 @@ export default function Admin() {
   const [pw, setPw] = useState("");
   const [loginError, setLoginError] = useState("");
   const [loginLoading, setLoginLoading] = useState(false);
-  const [activeTab, setActiveTab] = useState<"products" | "admins">("products");
+  const [activeTab, setActiveTab] = useState<"products" | "gallery" | "offers" | "analytics" | "admins">("products");
+
+  // Gallery state
+  const [gallery, setGallery] = useState<GalleryPhoto[]>([]);
+  const [galleryLoading, setGalleryLoading] = useState(false);
+  const [galleryCaption, setGalleryCaption] = useState("");
+  const [galleryUploading, setGalleryUploading] = useState(false);
+  const galleryFileRef = useRef<HTMLInputElement>(null);
+  const [editingGallery, setEditingGallery] = useState<GalleryPhoto | null>(null);
+  const [editingGalleryCaption, setEditingGalleryCaption] = useState("");
+
+  // Offers state
+  const [offers, setOffers] = useState<Offer[]>([]);
+  const [offersLoading, setOffersLoading] = useState(false);
+  const [offerForm, setOfferForm] = useState({ title: "", description: "", badge: "", bgColor: "from-primary to-pink", active: true, image: "", showPopup: false });
+  const [offerImageUploading, setOfferImageUploading] = useState(false);
+  const offerImageRef = useRef<HTMLInputElement>(null);
+  const [showOfferForm, setShowOfferForm] = useState(false);
+  const [editingOffer, setEditingOffer] = useState<Offer | null>(null);
+  const [offerSaving, setOfferSaving] = useState(false);
+
+  // Analytics state
+  const [analytics, setAnalytics] = useState<Awaited<ReturnType<typeof fetchAnalyticsSummary>>>(null);
+  const [analyticsLoading, setAnalyticsLoading] = useState(false);
 
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(false);
@@ -87,6 +114,93 @@ export default function Admin() {
   }, []);
 
   useEffect(() => { if (authed) loadProducts(); }, [authed]);
+
+  useEffect(() => {
+    if (!authed) return;
+    if (activeTab === "gallery") loadGallery();
+    if (activeTab === "offers") loadOffers();
+    if (activeTab === "analytics") loadAnalytics();
+  }, [activeTab, authed]);
+
+  async function loadGallery() {
+    setGalleryLoading(true);
+    try { setGallery(await fetchGallery()); } catch { /* silent */ }
+    finally { setGalleryLoading(false); }
+  }
+
+  async function loadOffers() {
+    setOffersLoading(true);
+    try { setOffers(await fetchAllOffers()); } catch { /* silent */ }
+    finally { setOffersLoading(false); }
+  }
+
+  async function loadAnalytics() {
+    setAnalyticsLoading(true);
+    try { setAnalytics(await fetchAnalyticsSummary()); } catch { /* silent */ }
+    finally { setAnalyticsLoading(false); }
+  }
+
+  async function handleGalleryUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setGalleryUploading(true);
+    try {
+      const { secure_url, public_id } = await uploadToCloudinary(file);
+      await createGalleryPhoto({ image: secure_url, caption: galleryCaption, publicId: public_id });
+      setGalleryCaption("");
+      await loadGallery();
+    } catch { /* silent */ }
+    finally {
+      setGalleryUploading(false);
+      if (galleryFileRef.current) galleryFileRef.current.value = "";
+    }
+  }
+
+  async function handleDeleteGalleryPhoto(id: string) {
+    try { await deleteGalleryPhoto(id); await loadGallery(); } catch { /* silent */ }
+  }
+
+  async function handleSaveGalleryEdit() {
+    if (!editingGallery) return;
+    try {
+      await updateGalleryPhoto(editingGallery.$id, { caption: editingGalleryCaption });
+      setEditingGallery(null);
+      await loadGallery();
+    } catch { /* silent */ }
+  }
+
+  async function handleOfferImageUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setOfferImageUploading(true);
+    try {
+      const { secure_url } = await uploadToCloudinary(file);
+      setOfferForm(f => ({ ...f, image: secure_url }));
+    } catch { /* silent */ }
+    finally { setOfferImageUploading(false); if (offerImageRef.current) offerImageRef.current.value = ""; }
+  }
+
+  async function handleSaveOffer() {
+    if (!offerForm.title.trim()) return;
+    setOfferSaving(true);
+    try {
+      if (editingOffer) await updateOffer(editingOffer.$id, offerForm);
+      else await createOffer(offerForm);
+      setShowOfferForm(false);
+      setEditingOffer(null);
+      setOfferForm({ title: "", description: "", badge: "", bgColor: "from-primary to-pink", active: true, image: "", showPopup: false });
+      await loadOffers();
+    } catch { /* silent */ }
+    finally { setOfferSaving(false); }
+  }
+
+  async function toggleOfferActive(offer: Offer) {
+    try { await updateOffer(offer.$id, { active: !offer.active }); await loadOffers(); } catch { /* silent */ }
+  }
+
+  async function handleDeleteOffer(id: string) {
+    try { await deleteOffer(id); await loadOffers(); } catch { /* silent */ }
+  }
 
   async function loadProducts() {
     setLoading(true);
@@ -252,6 +366,9 @@ export default function Admin() {
   // ── Dashboard ─────────────────────────────────────────────────
   const NAV = [
     { id: "products" as const, label: "Products", icon: Package },
+    { id: "gallery" as const, label: "Gallery", icon: Image },
+    { id: "offers" as const, label: "Offers", icon: Megaphone },
+    { id: "analytics" as const, label: "Analytics", icon: BarChart2 },
     { id: "admins" as const, label: "Admin Management", icon: Users },
   ];
 
@@ -325,7 +442,7 @@ export default function Admin() {
               </div>
             </div>
             <h1 className="font-bold text-base">
-              {activeTab === "products" ? "Products" : "Admin Management"}
+              {NAV.find(n => n.id === activeTab)?.label ?? "Dashboard"}
             </h1>
           </div>
 
@@ -478,6 +595,299 @@ export default function Admin() {
                       </div>
                     </motion.div>
                   ))}
+                </div>
+              )}
+            </motion.div>
+          )}
+
+          {/* ── Gallery Tab ── */}
+          {activeTab === "gallery" && (
+            <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}>
+              {/* Upload bar */}
+              <div className="bg-card rounded-2xl border border-border/50 shadow-card p-6 mb-6">
+                <h2 className="font-bold text-base mb-4 flex items-center gap-2"><Upload className="w-4 h-4 text-primary" /> Upload Photo to Cloudinary</h2>
+                <div className="flex flex-col sm:flex-row gap-3">
+                  <input value={galleryCaption} onChange={e => setGalleryCaption(e.target.value)}
+                    placeholder="Caption (optional)" className={`${inputCls} flex-1`} />
+                  <button onClick={() => galleryFileRef.current?.click()} disabled={galleryUploading}
+                    className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-primary text-primary-foreground font-bold shadow-fun hover:opacity-90 transition disabled:opacity-60 shrink-0">
+                    {galleryUploading ? <><Loader2 className="w-4 h-4 animate-spin" /> Uploading...</> : <><Upload className="w-4 h-4" /> Upload Photo</>}
+                  </button>
+                  <input ref={galleryFileRef} type="file" accept="image/*" className="hidden" onChange={handleGalleryUpload} />
+                </div>
+                <p className="text-xs text-muted-foreground mt-2">Photos are uploaded to Cloudinary and saved in Appwrite gallery collection.</p>
+              </div>
+
+              {/* Edit caption modal */}
+              <AnimatePresence>
+                {editingGallery && (
+                  <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                    className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4"
+                    onClick={() => setEditingGallery(null)}>
+                    <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }}
+                      onClick={e => e.stopPropagation()}
+                      className="bg-card rounded-2xl p-6 shadow-card border border-border/50 w-full max-w-sm space-y-4">
+                      <h3 className="font-bold">Edit Caption</h3>
+                      <img src={editingGallery.image} alt="" className="w-full aspect-video object-cover rounded-xl" />
+                      <input value={editingGalleryCaption} onChange={e => setEditingGalleryCaption(e.target.value)}
+                        placeholder="Caption..." className={inputCls} />
+                      <div className="flex gap-3">
+                        <button onClick={() => setEditingGallery(null)} className="flex-1 py-2.5 rounded-xl border border-border font-semibold text-sm hover:bg-muted transition">Cancel</button>
+                        <button onClick={handleSaveGalleryEdit}
+                          className="flex-1 py-2.5 rounded-xl bg-gradient-primary text-primary-foreground font-bold text-sm hover:opacity-90 transition inline-flex items-center justify-center gap-2">
+                          <Save className="w-4 h-4" /> Save
+                        </button>
+                      </div>
+                    </motion.div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              {galleryLoading ? (
+                <div className="flex items-center justify-center py-24"><Loader2 className="w-10 h-10 animate-spin text-primary" /></div>
+              ) : gallery.length === 0 ? (
+                <div className="text-center py-24 bg-card rounded-2xl border border-border/50">
+                  <ImageIcon className="w-16 h-16 mx-auto text-muted-foreground/30 mb-3" />
+                  <p className="font-semibold">No photos yet</p>
+                  <p className="text-sm text-muted-foreground">Upload your first photo above</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
+                  {gallery.map(photo => (
+                    <motion.div key={photo.$id} layout initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }}
+                      className="group relative aspect-square rounded-2xl overflow-hidden border border-border/50 shadow-card bg-muted">
+                      <img src={photo.image} alt={photo.caption || ""} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                      <div className="absolute inset-0 bg-black/55 opacity-0 group-hover:opacity-100 transition flex flex-col items-center justify-center gap-2 p-2">
+                        {photo.caption && <p className="text-white text-[11px] font-semibold text-center line-clamp-2">{photo.caption}</p>}
+                        <div className="flex gap-2">
+                          <button onClick={() => { setEditingGallery(photo); setEditingGalleryCaption(photo.caption || ""); }}
+                            className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-white/20 text-white text-xs font-bold hover:bg-white/30 transition">
+                            <Pencil className="w-3 h-3" /> Edit
+                          </button>
+                          <button onClick={() => handleDeleteGalleryPhoto(photo.$id)}
+                            className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-destructive/80 text-white text-xs font-bold hover:bg-destructive transition">
+                            <Trash2 className="w-3 h-3" /> Delete
+                          </button>
+                        </div>
+                      </div>
+                    </motion.div>
+                  ))}
+                </div>
+              )}
+            </motion.div>
+          )}
+
+          {/* ── Offers Tab ── */}
+          {activeTab === "offers" && (
+            <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="max-w-3xl">
+              <div className="flex items-center justify-between mb-6">
+                <p className="text-sm text-muted-foreground">Active offer টি homepage-এ banner হিসেবে দেখাবে।</p>
+                <button onClick={() => { setEditingOffer(null); setOfferForm({ title: "", description: "", badge: "", bgColor: "from-primary to-pink", active: true }); setShowOfferForm(true); }}
+                  className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-gradient-primary text-primary-foreground text-sm font-bold shadow-fun hover:opacity-90 transition">
+                  <Plus className="w-4 h-4" /> New Offer
+                </button>
+              </div>
+
+              <AnimatePresence>
+                {showOfferForm && (
+                  <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}
+                    className="bg-card rounded-2xl border border-border/50 shadow-card p-6 mb-6 space-y-3">
+                    <h3 className="font-bold mb-2">{editingOffer ? "Edit Offer" : "New Offer"}</h3>
+                    <input value={offerForm.title} onChange={e => setOfferForm(f => ({ ...f, title: e.target.value }))}
+                      placeholder="Offer title *" className={inputCls} />
+                    <input value={offerForm.description} onChange={e => setOfferForm(f => ({ ...f, description: e.target.value }))}
+                      placeholder="Description (optional)" className={inputCls} />
+                    <div className="flex gap-3">
+                      <input value={offerForm.badge} onChange={e => setOfferForm(f => ({ ...f, badge: e.target.value }))}
+                        placeholder="Badge (e.g. 🎉 EID OFFER)" className={`${inputCls} flex-1`} />
+                      <select value={offerForm.bgColor} onChange={e => setOfferForm(f => ({ ...f, bgColor: e.target.value }))}
+                        className={`${inputCls} flex-1`}>
+                        <option value="from-primary to-pink">Purple → Pink</option>
+                        <option value="from-orange-500 to-red-500">Orange → Red</option>
+                        <option value="from-green-500 to-teal-500">Green → Teal</option>
+                        <option value="from-blue-500 to-purple-500">Blue → Purple</option>
+                        <option value="from-yellow-400 to-orange-500">Yellow → Orange</option>
+                      </select>
+                    </div>
+
+                    {/* Image upload */}
+                    <div>
+                      <label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-1.5 block">Offer Image <span className="normal-case font-normal">(optional — shows in slider & popup)</span></label>
+                      <input ref={offerImageRef} type="file" accept="image/*" className="hidden" onChange={handleOfferImageUpload} />
+                      {offerForm.image ? (
+                        <div className="relative rounded-xl overflow-hidden aspect-video border border-border">
+                          <img src={offerForm.image} alt="offer" className="w-full h-full object-cover" />
+                          <button onClick={() => setOfferForm(f => ({ ...f, image: "" }))}
+                            className="absolute top-2 right-2 w-7 h-7 rounded-full bg-destructive text-white grid place-items-center hover:opacity-90 transition">
+                            <X className="w-3.5 h-3.5" />
+                          </button>
+                          <div className="absolute bottom-2 left-2 flex items-center gap-1 bg-black/60 text-white text-xs px-2 py-1 rounded-lg">
+                            <CheckCircle2 className="w-3 h-3 text-green-400" /> Image selected
+                          </div>
+                        </div>
+                      ) : (
+                        <button onClick={() => offerImageRef.current?.click()} disabled={offerImageUploading}
+                          className="w-full h-28 rounded-xl border-2 border-dashed border-border hover:border-primary hover:bg-primary/5 transition-all flex items-center justify-center gap-3 text-muted-foreground hover:text-primary">
+                          {offerImageUploading ? <><Loader2 className="w-5 h-5 animate-spin" /> Uploading...</> : <><Upload className="w-5 h-5" /> Click to upload image</>}
+                        </button>
+                      )}
+                    </div>
+
+                    <div className="flex gap-6">
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <input type="checkbox" checked={offerForm.active} onChange={e => setOfferForm(f => ({ ...f, active: e.target.checked }))} className="w-4 h-4 accent-primary" />
+                        <span className="text-sm font-semibold">Active (banner + slider)</span>
+                      </label>
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <input type="checkbox" checked={offerForm.showPopup} onChange={e => setOfferForm(f => ({ ...f, showPopup: e.target.checked }))} className="w-4 h-4 accent-primary" />
+                        <span className="text-sm font-semibold">Show as Popup</span>
+                      </label>
+                    </div>
+                    <div className="flex gap-3 pt-1">
+                      <button onClick={() => setShowOfferForm(false)} className="px-5 py-2 rounded-xl border border-border text-sm font-semibold hover:bg-muted transition">Cancel</button>
+                      <button onClick={handleSaveOffer} disabled={offerSaving || !offerForm.title.trim() || offerImageUploading}
+                        className="flex-1 py-2 rounded-xl bg-gradient-primary text-primary-foreground font-bold text-sm hover:opacity-90 transition disabled:opacity-60 inline-flex items-center justify-center gap-2">
+                        {offerSaving ? <><Loader2 className="w-4 h-4 animate-spin" /> Saving...</> : <><Save className="w-4 h-4" /> Save Offer</>}
+                      </button>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              {offersLoading ? (
+                <div className="flex items-center justify-center py-24"><Loader2 className="w-10 h-10 animate-spin text-primary" /></div>
+              ) : offers.length === 0 ? (
+                <div className="text-center py-24 bg-card rounded-2xl border border-border/50">
+                  <Megaphone className="w-16 h-16 mx-auto text-muted-foreground/30 mb-3" />
+                  <p className="font-semibold">No offers yet</p>
+                  <p className="text-sm text-muted-foreground">Create your first offer above</p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {offers.map(offer => (
+                    <motion.div key={offer.$id} layout initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
+                      className="bg-card rounded-2xl border border-border/50 shadow-card overflow-hidden">
+                      {offer.image && (
+                        <div className="relative h-28 overflow-hidden">
+                          <img src={offer.image} alt={offer.title} className="w-full h-full object-cover" />
+                          <div className={`absolute inset-0 bg-gradient-to-r ${offer.bgColor || "from-primary to-pink"} opacity-40`} />
+                        </div>
+                      )}
+                      <div className="p-4 flex items-center gap-4">
+                        {!offer.image && <div className={`w-10 h-10 rounded-xl bg-gradient-to-r ${offer.bgColor || "from-primary to-pink"} shrink-0`} />}
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <p className="font-semibold text-sm truncate">{offer.title}</p>
+                            {offer.badge && <span className="px-2 py-0.5 rounded-full bg-primary/10 text-primary text-[10px] font-bold shrink-0">{offer.badge}</span>}
+                            {offer.showPopup && <span className="px-2 py-0.5 rounded-full bg-orange-500/10 text-orange-500 text-[10px] font-bold shrink-0">Popup</span>}
+                          </div>
+                          {offer.description && <p className="text-xs text-muted-foreground truncate">{offer.description}</p>}
+                        </div>
+                        <button onClick={() => toggleOfferActive(offer)}
+                          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition shrink-0 ${offer.active ? "bg-green-500/10 text-green-600" : "bg-muted text-muted-foreground"}`}>
+                          {offer.active ? <><ToggleRight className="w-4 h-4" /> Active</> : <><ToggleLeft className="w-4 h-4" /> Off</>}
+                        </button>
+                        <button onClick={() => { setEditingOffer(offer); setOfferForm({ title: offer.title, description: offer.description || "", badge: offer.badge || "", bgColor: offer.bgColor || "from-primary to-pink", active: offer.active, image: offer.image || "", showPopup: offer.showPopup || false }); setShowOfferForm(true); }}
+                          className="p-2 rounded-lg bg-muted hover:bg-primary/10 hover:text-primary transition shrink-0">
+                          <Pencil className="w-3.5 h-3.5" />
+                        </button>
+                        <button onClick={() => handleDeleteOffer(offer.$id)}
+                          className="p-2 rounded-lg bg-muted hover:bg-destructive/10 hover:text-destructive transition shrink-0">
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    </motion.div>
+                  ))}
+                </div>
+              )}
+            </motion.div>
+          )}
+
+          {/* ── Analytics Tab ── */}
+          {activeTab === "analytics" && (
+            <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}>
+              {analyticsLoading ? (
+                <div className="flex flex-col items-center justify-center py-32 gap-3">
+                  <Loader2 className="w-10 h-10 animate-spin text-primary" />
+                  <p className="text-muted-foreground text-sm">Loading analytics...</p>
+                </div>
+              ) : !analytics ? (
+                <div className="text-center py-32 bg-card rounded-2xl border border-border/50">
+                  <BarChart2 className="w-16 h-16 mx-auto text-muted-foreground/30 mb-3" />
+                  <p className="font-semibold">No data yet</p>
+                  <p className="text-sm text-muted-foreground">Visitors will appear here after they browse the site</p>
+                </div>
+              ) : (
+                <div className="space-y-6">
+                  {/* Summary cards */}
+                  <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                    <StatCard icon={<Eye className="w-5 h-5 text-white" />} label="Total Page Views" value={analytics.totalVisits} color="bg-gradient-primary" />
+                    <StatCard icon={<TrendingUp className="w-5 h-5 text-white" />} label="Product Views" value={analytics.totalProductViews} color="bg-gradient-to-br from-secondary to-highlight" />
+                    <StatCard icon={<Globe className="w-5 h-5 text-white" />} label="Pages Tracked" value={analytics.pageBreakdown.length} color="bg-gradient-to-br from-accent to-primary" />
+                    <StatCard icon={<Package className="w-5 h-5 text-white" />} label="Products Viewed" value={analytics.topProducts.length} color="bg-gradient-to-br from-pink to-secondary" />
+                  </div>
+
+                  <div className="grid lg:grid-cols-2 gap-6">
+                    {/* Daily visits */}
+                    <div className="bg-card rounded-2xl border border-border/50 shadow-card p-6">
+                      <h3 className="font-bold mb-4 flex items-center gap-2"><BarChart2 className="w-4 h-4 text-primary" /> Last 7 Days Visits</h3>
+                      <div className="space-y-2">
+                        {analytics.dailyVisits.map(([day, count]) => {
+                          const max = Math.max(...analytics.dailyVisits.map(([, c]) => c), 1);
+                          return (
+                            <div key={day} className="flex items-center gap-3">
+                              <span className="text-xs text-muted-foreground w-16 shrink-0">{day}</span>
+                              <div className="flex-1 bg-muted rounded-full h-2 overflow-hidden">
+                                <motion.div initial={{ width: 0 }} animate={{ width: `${(count / max) * 100}%` }}
+                                  className="h-full bg-gradient-primary rounded-full" />
+                              </div>
+                              <span className="text-xs font-bold w-6 text-right shrink-0">{count}</span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    {/* Top products */}
+                    <div className="bg-card rounded-2xl border border-border/50 shadow-card p-6">
+                      <h3 className="font-bold mb-4 flex items-center gap-2"><TrendingUp className="w-4 h-4 text-primary" /> Most Viewed Products</h3>
+                      {analytics.topProducts.length === 0 ? (
+                        <p className="text-sm text-muted-foreground text-center py-8">No product views yet</p>
+                      ) : (
+                        <div className="space-y-3">
+                          {analytics.topProducts.map((p, i) => {
+                            const max = Math.max(...analytics.topProducts.map(x => x.count), 1);
+                            return (
+                              <div key={i} className="flex items-center gap-3">
+                                <span className="w-5 h-5 rounded-full bg-gradient-primary text-primary-foreground text-[10px] font-bold grid place-items-center shrink-0">{i + 1}</span>
+                                <span className="text-sm flex-1 truncate">{p.name}</span>
+                                <div className="w-24 bg-muted rounded-full h-2 overflow-hidden">
+                                  <motion.div initial={{ width: 0 }} animate={{ width: `${(p.count / max) * 100}%` }}
+                                    className="h-full bg-gradient-to-r from-secondary to-highlight rounded-full" />
+                                </div>
+                                <span className="text-xs font-bold w-6 text-right shrink-0">{p.count}</span>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Page breakdown */}
+                    <div className="bg-card rounded-2xl border border-border/50 shadow-card p-6 lg:col-span-2">
+                      <h3 className="font-bold mb-4 flex items-center gap-2"><Globe className="w-4 h-4 text-primary" /> Page Breakdown</h3>
+                      <div className="grid sm:grid-cols-2 gap-3">
+                        {analytics.pageBreakdown.map(([page, count]) => (
+                          <div key={page} className="flex items-center justify-between p-3 rounded-xl bg-muted/50">
+                            <span className="text-sm font-semibold capitalize">/{page}</span>
+                            <span className="px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-bold">{count} views</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+
+                  <p className="text-xs text-muted-foreground text-center">Analytics collect করা হয় শুধুমাত্র page visits থেকে। কোনো personal data store হয় না।</p>
                 </div>
               )}
             </motion.div>

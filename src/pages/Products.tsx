@@ -3,7 +3,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Phone, Loader2, PackageOpen, Search, X, SlidersHorizontal } from "lucide-react";
 import PageHero from "@/components/PageHero";
 import { SITE } from "@/lib/site";
-import { type Product, fetchProducts } from "@/lib/appwrite";
+import { type Product, fetchProducts, trackEvent } from "@/lib/appwrite";
+import { usePageView } from "@/hooks/useAnalytics";
 
 const BADGES = ["All", "New", "Hot", "Sale"];
 
@@ -16,12 +17,19 @@ export default function Products() {
   const [activeBadge, setActiveBadge] = useState("All");
   const [selected, setSelected] = useState<Product | null>(null);
 
+  usePageView("products");
+
   useEffect(() => {
     fetchProducts()
       .then(setProducts)
       .catch(() => setError(true))
       .finally(() => setLoading(false));
   }, []);
+
+  function openProduct(p: Product) {
+    setSelected(p);
+    trackEvent({ type: "product_view", productId: p.$id, productName: p.name });
+  }
 
   const filtered = products.filter((p) => {
     const matchSearch = p.name.toLowerCase().includes(search.toLowerCase()) ||
@@ -104,7 +112,7 @@ export default function Products() {
                   viewport={{ once: true }}
                   transition={{ delay: i * 0.06 }}
                   whileHover={{ y: -6 }}
-                  onClick={() => setSelected(p)}
+                  onClick={() => openProduct(p)}
                   className="group bg-card rounded-4xl overflow-hidden shadow-card hover:shadow-fun transition-all border border-border/50 cursor-pointer"
                 >
                   {/* Image */}
