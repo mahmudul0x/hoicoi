@@ -3,15 +3,15 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   Plus, Pencil, Trash2, LogOut, X, Save,
   ShieldCheck, Search, Loader2, Upload, ImageIcon,
-  Tag, Package, LayoutGrid, List, CheckCircle2,
+  Tag, Package, LayoutGrid, List, CheckCircle2, Mail, Lock,
 } from "lucide-react";
 import {
   type Product,
   fetchProducts, createProduct, updateProduct, deleteProduct,
+  loginAdmin, logoutAdmin, getCurrentUser,
 } from "@/lib/appwrite";
 import { uploadToCloudinary } from "@/lib/cloudinary";
 
-const ADMIN_PASSWORD = "hoichoi2024";
 const UNSPLASH_KEY = import.meta.env.VITE_UNSPLASH_ACCESS_KEY;
 
 type UnsplashPhoto = {
@@ -46,8 +46,11 @@ function StatCard({ icon, label, value, color }: { icon: React.ReactNode; label:
 
 export default function Admin() {
   const [authed, setAuthed] = useState(false);
+  const [checkingSession, setCheckingSession] = useState(true);
+  const [email, setEmail] = useState("");
   const [pw, setPw] = useState("");
-  const [pwError, setPwError] = useState(false);
+  const [loginError, setLoginError] = useState("");
+  const [loginLoading, setLoginLoading] = useState(false);
 
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(false);
@@ -70,6 +73,13 @@ export default function Admin() {
   const [uploadSuccess, setUploadSuccess] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
+  useEffect(() => {
+    getCurrentUser().then((user) => {
+      if (user) { setAuthed(true); }
+      setCheckingSession(false);
+    });
+  }, []);
+
   useEffect(() => { if (authed) loadProducts(); }, [authed]);
 
   async function loadProducts() {
@@ -79,9 +89,25 @@ export default function Admin() {
     finally { setLoading(false); }
   }
 
-  function login() {
-    if (pw === ADMIN_PASSWORD) { setAuthed(true); setPwError(false); }
-    else setPwError(true);
+  async function login() {
+    if (!email.trim() || !pw.trim()) return;
+    setLoginLoading(true);
+    setLoginError("");
+    try {
+      await loginAdmin(email.trim(), pw);
+      setAuthed(true);
+    } catch {
+      setLoginError("Invalid email or password.");
+    } finally {
+      setLoginLoading(false);
+    }
+  }
+
+  async function handleLogout() {
+    await logoutAdmin();
+    setAuthed(false);
+    setEmail("");
+    setPw("");
   }
 
   function openAdd() {
@@ -153,6 +179,15 @@ export default function Admin() {
     (p.description || "").toLowerCase().includes(listSearch.toLowerCase())
   );
 
+  // ── Session check ─────────────────────────────────────────────
+  if (checkingSession) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/10 via-background to-secondary/10">
+        <Loader2 className="w-10 h-10 animate-spin text-primary" />
+      </div>
+    );
+  }
+
   // ── Login page ────────────────────────────────────────────────
   if (!authed) {
     return (
@@ -169,21 +204,33 @@ export default function Admin() {
               <p className="text-muted-foreground text-sm mt-1">Hoichoi Khelaghor</p>
             </div>
             <div className="space-y-3">
-              <input type="password" value={pw}
-                onChange={(e) => { setPw(e.target.value); setPwError(false); }}
-                onKeyDown={(e) => e.key === "Enter" && login()}
-                placeholder="Enter password"
-                className={`${inputCls} ${pwError ? "border-destructive focus:ring-destructive/50" : ""}`}
-              />
-              {pwError && (
+              <div className="relative">
+                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <input type="email" value={email}
+                  onChange={(e) => { setEmail(e.target.value); setLoginError(""); }}
+                  onKeyDown={(e) => e.key === "Enter" && login()}
+                  placeholder="Admin email"
+                  className={`${inputCls} pl-9 ${loginError ? "border-destructive focus:ring-destructive/50" : ""}`}
+                />
+              </div>
+              <div className="relative">
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <input type="password" value={pw}
+                  onChange={(e) => { setPw(e.target.value); setLoginError(""); }}
+                  onKeyDown={(e) => e.key === "Enter" && login()}
+                  placeholder="Password"
+                  className={`${inputCls} pl-9 ${loginError ? "border-destructive focus:ring-destructive/50" : ""}`}
+                />
+              </div>
+              {loginError && (
                 <motion.p initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }}
                   className="text-destructive text-xs flex items-center gap-1">
-                  <X className="w-3 h-3" /> Incorrect password
+                  <X className="w-3 h-3" /> {loginError}
                 </motion.p>
               )}
-              <button onClick={login}
-                className="w-full py-3 rounded-xl bg-gradient-primary text-primary-foreground font-bold shadow-fun hover:opacity-90 hover:scale-[1.02] transition-all">
-                Sign In
+              <button onClick={login} disabled={loginLoading || !email.trim() || !pw.trim()}
+                className="w-full py-3 rounded-xl bg-gradient-primary text-primary-foreground font-bold shadow-fun hover:opacity-90 hover:scale-[1.02] transition-all disabled:opacity-60 disabled:scale-100 inline-flex items-center justify-center gap-2">
+                {loginLoading ? <><Loader2 className="w-4 h-4 animate-spin" /> Signing in...</> : "Sign In"}
               </button>
             </div>
           </div>
@@ -211,7 +258,7 @@ export default function Admin() {
               className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-gradient-primary text-primary-foreground text-sm font-bold shadow-fun hover:opacity-90 transition">
               <Plus className="w-4 h-4" /> Add Product
             </button>
-            <button onClick={() => setAuthed(false)}
+            <button onClick={handleLogout}
               className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-muted text-muted-foreground text-sm font-semibold hover:bg-destructive/10 hover:text-destructive transition">
               <LogOut className="w-4 h-4" /> Logout
             </button>

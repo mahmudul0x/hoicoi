@@ -1,4 +1,4 @@
-import { Client, Databases, Storage, ID, Query } from "appwrite";
+import { Client, Databases, Storage, Account, ID, Query } from "appwrite";
 
 const client = new Client()
   .setEndpoint("https://sgp.cloud.appwrite.io/v1")
@@ -6,6 +6,23 @@ const client = new Client()
 
 export const databases = new Databases(client);
 export const storage = new Storage(client);
+export const account = new Account(client);
+
+export async function loginAdmin(email: string, password: string) {
+  return account.createEmailPasswordSession(email, password);
+}
+
+export async function logoutAdmin() {
+  return account.deleteSession("current");
+}
+
+export async function getCurrentUser() {
+  try {
+    return await account.get();
+  } catch {
+    return null;
+  }
+}
 
 export const DB_ID = import.meta.env.VITE_APPWRITE_DATABASE_ID;
 export const COLLECTION_ID = import.meta.env.VITE_APPWRITE_COLLECTION_ID;
