@@ -1,0 +1,20 @@
+name: Keep Appwrite Alive
+
+on:
+  schedule:
+    - cron: '0 3 * * *'  # Every day at 3 AM UTC (9 AM Bangladesh time)
+  workflow_dispatch:      # Manual trigger option
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Appwrite Health
+        run: |
+          curl -f https://sgp.cloud.appwrite.io/v1/health \
+            -H "X-Appwrite-Project: 6a019af50019dcd59782"
+
+      - name: Ping Products Collection
+        run: |
+          curl -f "https://sgp.cloud.appwrite.io/v1/databases/6a019b97002972b3ab7c/collections/products/documents?limit=1" \
+            -H "X-Appwrite-Project: 6a019af50019dcd59782"
