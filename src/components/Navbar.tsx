@@ -8,6 +8,8 @@ import logo from "@/assets/logo.png";
 const links = [
   { to: "/", label: "Home" },
   { to: "/about", label: "About" },
+  { to: "/activities", label: "Activities" },
+  { to: "/products", label: "Products" },
   { to: "/gallery", label: "Gallery" },
   { to: "/packages", label: "Packages" },
   { to: "/events", label: "Events" },

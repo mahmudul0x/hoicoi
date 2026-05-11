@@ -10,6 +10,9 @@ import Gallery from "./pages/Gallery.tsx";
 import Packages from "./pages/Packages.tsx";
 import Events from "./pages/Events.tsx";
 import Contact from "./pages/Contact.tsx";
+import Activities from "./pages/Activities.tsx";
+import Products from "./pages/Products.tsx";
+import Admin from "./pages/Admin.tsx";
 import NotFound from "./pages/NotFound.tsx";
 
 const queryClient = new QueryClient();
@@ -28,6 +31,11 @@ const App = () => (
             <Route path="/packages" element={<Packages />} />
             <Route path="/events" element={<Events />} />
             <Route path="/contact" element={<Contact />} />
+            <Route path="/activities" element={<Activities />} />
+            <Route path="/products" element={<Products />} />
+          </Route>
+          <Route path="/admin" element={<Admin />} />
+          <Route element={<Layout />}>
             <Route path="*" element={<NotFound />} />
           </Route>
         </Routes>
