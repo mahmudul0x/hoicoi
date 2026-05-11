@@ -4,6 +4,7 @@ import {
   Plus, Pencil, Trash2, LogOut, X, Save,
   ShieldCheck, Search, Loader2, Upload, ImageIcon,
   Tag, Package, LayoutGrid, List, CheckCircle2, Mail, Lock,
+  UserPlus, ExternalLink, Users, KeyRound,
 } from "lucide-react";
 import {
   type Product,
@@ -47,10 +48,12 @@ function StatCard({ icon, label, value, color }: { icon: React.ReactNode; label:
 export default function Admin() {
   const [authed, setAuthed] = useState(false);
   const [checkingSession, setCheckingSession] = useState(true);
+  const [currentUser, setCurrentUser] = useState<{ name: string; email: string } | null>(null);
   const [email, setEmail] = useState("");
   const [pw, setPw] = useState("");
   const [loginError, setLoginError] = useState("");
   const [loginLoading, setLoginLoading] = useState(false);
+  const [activeTab, setActiveTab] = useState<"products" | "admins">("products");
 
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(false);
@@ -75,7 +78,10 @@ export default function Admin() {
 
   useEffect(() => {
     getCurrentUser().then((user) => {
-      if (user) { setAuthed(true); }
+      if (user) {
+        setAuthed(true);
+        setCurrentUser({ name: user.name || "Admin", email: user.email });
+      }
       setCheckingSession(false);
     });
   }, []);
@@ -95,6 +101,8 @@ export default function Admin() {
     setLoginError("");
     try {
       await loginAdmin(email.trim(), pw);
+      const user = await getCurrentUser();
+      if (user) setCurrentUser({ name: user.name || "Admin", email: user.email });
       setAuthed(true);
     } catch {
       setLoginError("Invalid email or password.");
@@ -106,6 +114,7 @@ export default function Admin() {
   async function handleLogout() {
     await logoutAdmin();
     setAuthed(false);
+    setCurrentUser(null);
     setEmail("");
     setPw("");
   }
@@ -249,24 +258,137 @@ export default function Admin() {
         <div className="container max-w-7xl flex items-center justify-between h-16 gap-4">
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 rounded-lg bg-gradient-primary grid place-items-center shadow-fun">
-              <Package className="w-4 h-4 text-white" />
+              <ShieldCheck className="w-4 h-4 text-white" />
             </div>
-            <span className="font-bold text-base">Product Manager</span>
+            <span className="font-bold text-base hidden sm:block">Admin Dashboard</span>
           </div>
-          <div className="flex items-center gap-2">
-            <button onClick={openAdd}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-gradient-primary text-primary-foreground text-sm font-bold shadow-fun hover:opacity-90 transition">
-              <Plus className="w-4 h-4" /> Add Product
+
+          {/* Tab switcher */}
+          <div className="flex items-center gap-1 bg-muted rounded-xl p-1">
+            <button onClick={() => setActiveTab("products")}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-semibold transition ${activeTab === "products" ? "bg-card shadow text-primary" : "text-muted-foreground hover:text-foreground"}`}>
+              <Package className="w-3.5 h-3.5" /> Products
             </button>
+            <button onClick={() => setActiveTab("admins")}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-semibold transition ${activeTab === "admins" ? "bg-card shadow text-primary" : "text-muted-foreground hover:text-foreground"}`}>
+              <Users className="w-3.5 h-3.5" /> Admins
+            </button>
+          </div>
+
+          <div className="flex items-center gap-2">
+            {currentUser && (
+              <div className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-muted text-sm">
+                <div className="w-6 h-6 rounded-full bg-gradient-primary grid place-items-center">
+                  <span className="text-white text-[10px] font-bold">{currentUser.email[0].toUpperCase()}</span>
+                </div>
+                <span className="text-muted-foreground text-xs truncate max-w-[140px]">{currentUser.email}</span>
+              </div>
+            )}
+            {activeTab === "products" && (
+              <button onClick={openAdd}
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-gradient-primary text-primary-foreground text-sm font-bold shadow-fun hover:opacity-90 transition">
+                <Plus className="w-4 h-4" /> <span className="hidden sm:inline">Add Product</span>
+              </button>
+            )}
             <button onClick={handleLogout}
               className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-muted text-muted-foreground text-sm font-semibold hover:bg-destructive/10 hover:text-destructive transition">
-              <LogOut className="w-4 h-4" /> Logout
+              <LogOut className="w-4 h-4" /> <span className="hidden sm:inline">Logout</span>
             </button>
           </div>
         </div>
       </header>
 
       <div className="container max-w-7xl py-8">
+
+        {/* ── Admin Management Tab ── */}
+        {activeTab === "admins" && (
+          <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
+
+            {/* Current user card */}
+            <div className="bg-card rounded-2xl border border-border/50 shadow-card p-6">
+              <h2 className="font-bold text-lg mb-4 flex items-center gap-2">
+                <Users className="w-5 h-5 text-primary" /> Logged-in Admin
+              </h2>
+              {currentUser && (
+                <div className="flex items-center gap-4 p-4 rounded-xl bg-muted/50">
+                  <div className="w-12 h-12 rounded-xl bg-gradient-primary grid place-items-center shadow-fun shrink-0">
+                    <span className="text-white text-xl font-bold">{currentUser.email[0].toUpperCase()}</span>
+                  </div>
+                  <div>
+                    <p className="font-semibold">{currentUser.name}</p>
+                    <p className="text-sm text-muted-foreground">{currentUser.email}</p>
+                  </div>
+                  <span className="ml-auto px-3 py-1 rounded-full bg-green-500/10 text-green-600 text-xs font-bold">Active</span>
+                </div>
+              )}
+            </div>
+
+            {/* Add new admin */}
+            <div className="bg-card rounded-2xl border border-border/50 shadow-card p-6">
+              <h2 className="font-bold text-lg mb-2 flex items-center gap-2">
+                <UserPlus className="w-5 h-5 text-primary" /> Add New Admin
+              </h2>
+              <p className="text-sm text-muted-foreground mb-5">
+                নতুন admin add করতে Appwrite Dashboard থেকে user create করতে হবে। নিচের steps follow করো:
+              </p>
+              <ol className="space-y-3 mb-6">
+                {[
+                  { step: "1", text: 'Appwrite Dashboard-এ যাও এবং এই project open করো' },
+                  { step: "2", text: 'বাম সাইডবারে "Auth" → "Users" tab-এ click করো' },
+                  { step: "3", text: '"Create User" button click করো' },
+                  { step: "4", text: 'নতুন admin-এর Email এবং Password দাও' },
+                  { step: "5", text: 'Save করো — সাথে সাথে login করতে পারবে' },
+                ].map(({ step, text }) => (
+                  <li key={step} className="flex items-start gap-3">
+                    <span className="w-6 h-6 rounded-full bg-gradient-primary text-primary-foreground text-xs font-bold grid place-items-center shrink-0 mt-0.5">{step}</span>
+                    <span className="text-sm">{text}</span>
+                  </li>
+                ))}
+              </ol>
+              <a
+                href="https://cloud.appwrite.io"
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-primary text-primary-foreground font-bold shadow-fun hover:opacity-90 transition text-sm"
+              >
+                <ExternalLink className="w-4 h-4" /> Appwrite Dashboard খোলো
+              </a>
+            </div>
+
+            {/* Change password */}
+            <div className="bg-card rounded-2xl border border-border/50 shadow-card p-6">
+              <h2 className="font-bold text-lg mb-2 flex items-center gap-2">
+                <KeyRound className="w-5 h-5 text-primary" /> Password Change করতে চাও?
+              </h2>
+              <p className="text-sm text-muted-foreground mb-5">
+                যেকোনো admin-এর password Appwrite Dashboard থেকে change করা যাবে:
+              </p>
+              <ol className="space-y-3 mb-6">
+                {[
+                  { step: "1", text: 'Appwrite Dashboard → "Auth" → "Users"' },
+                  { step: "2", text: 'যে admin-এর password change করতে চাও তাকে click করো' },
+                  { step: "3", text: '"Update Password" option থেকে নতুন password দাও' },
+                ].map(({ step, text }) => (
+                  <li key={step} className="flex items-start gap-3">
+                    <span className="w-6 h-6 rounded-full bg-gradient-to-br from-secondary to-highlight text-white text-xs font-bold grid place-items-center shrink-0 mt-0.5">{step}</span>
+                    <span className="text-sm">{text}</span>
+                  </li>
+                ))}
+              </ol>
+              <a
+                href="https://cloud.appwrite.io"
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-muted border border-border font-semibold hover:bg-primary/10 hover:text-primary transition text-sm"
+              >
+                <ExternalLink className="w-4 h-4" /> Dashboard-এ যাও
+              </a>
+            </div>
+          </motion.div>
+        )}
+
+        {/* ── Products Tab ── */}
+        {activeTab === "products" && <>
 
         {/* Stats row */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
@@ -385,6 +507,7 @@ export default function Admin() {
             ))}
           </div>
         )}
+        </>}
       </div>
 
       {/* ── Add / Edit Modal ── */}
