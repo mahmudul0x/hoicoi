@@ -256,10 +256,10 @@ export default function Admin() {
   ];
 
   return (
-    <div className="min-h-screen flex bg-[#f4f6fb] dark:bg-[#0f1117]">
+    <div className="h-screen flex overflow-hidden bg-[#f4f6fb] dark:bg-[#0f1117]">
 
       {/* ── Sidebar ── */}
-      <aside className="hidden md:flex flex-col w-60 shrink-0 bg-card border-r border-border/60 min-h-screen sticky top-0 h-screen">
+      <aside className="hidden md:flex flex-col w-60 shrink-0 bg-card border-r border-border/60 h-full overflow-y-auto">
         {/* Logo */}
         <div className="flex items-center gap-3 px-5 py-5 border-b border-border/60">
           <div className="w-9 h-9 rounded-xl bg-gradient-primary grid place-items-center shadow-fun shrink-0">
@@ -313,10 +313,10 @@ export default function Admin() {
       </aside>
 
       {/* ── Main area ── */}
-      <div className="flex-1 flex flex-col min-h-screen">
+      <div className="flex-1 flex flex-col overflow-y-auto">
 
         {/* Top bar (mobile + page header) */}
-        <header className="sticky top-0 z-30 bg-card/80 backdrop-blur border-b border-border/50 px-4 md:px-8 h-14 flex items-center justify-between gap-4">
+        <header className="shrink-0 sticky top-0 z-30 bg-card/80 backdrop-blur border-b border-border/50 px-4 md:px-8 h-14 flex items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             {/* Mobile logo */}
             <div className="flex md:hidden items-center gap-2">
