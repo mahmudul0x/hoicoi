@@ -250,264 +250,315 @@ export default function Admin() {
   }
 
   // ── Dashboard ─────────────────────────────────────────────────
+  const NAV = [
+    { id: "products" as const, label: "Products", icon: Package },
+    { id: "admins" as const, label: "Admin Management", icon: Users },
+  ];
+
   return (
-    <div className="min-h-screen bg-muted/30">
+    <div className="min-h-screen flex bg-[#f4f6fb] dark:bg-[#0f1117]">
 
-      {/* Top bar */}
-      <header className="sticky top-0 z-40 bg-card/80 backdrop-blur border-b border-border/50 shadow-sm">
-        <div className="container max-w-7xl flex items-center justify-between h-16 gap-4">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-gradient-primary grid place-items-center shadow-fun">
-              <ShieldCheck className="w-4 h-4 text-white" />
-            </div>
-            <span className="font-bold text-base hidden sm:block">Admin Dashboard</span>
+      {/* ── Sidebar ── */}
+      <aside className="hidden md:flex flex-col w-60 shrink-0 bg-card border-r border-border/60 min-h-screen sticky top-0 h-screen">
+        {/* Logo */}
+        <div className="flex items-center gap-3 px-5 py-5 border-b border-border/60">
+          <div className="w-9 h-9 rounded-xl bg-gradient-primary grid place-items-center shadow-fun shrink-0">
+            <ShieldCheck className="w-5 h-5 text-white" />
           </div>
+          <div>
+            <p className="font-bold text-sm leading-tight">Hoichoi Admin</p>
+            <p className="text-[11px] text-muted-foreground">Dashboard</p>
+          </div>
+        </div>
 
-          {/* Tab switcher */}
-          <div className="flex items-center gap-1 bg-muted rounded-xl p-1">
-            <button onClick={() => setActiveTab("products")}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-semibold transition ${activeTab === "products" ? "bg-card shadow text-primary" : "text-muted-foreground hover:text-foreground"}`}>
-              <Package className="w-3.5 h-3.5" /> Products
+        {/* Nav */}
+        <nav className="flex-1 px-3 py-4 space-y-1">
+          <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60 px-3 mb-2">Menu</p>
+          {NAV.map(({ id, label, icon: Icon }) => (
+            <button key={id} onClick={() => setActiveTab(id)}
+              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-all ${
+                activeTab === id
+                  ? "bg-primary text-primary-foreground shadow-fun"
+                  : "text-muted-foreground hover:bg-muted hover:text-foreground"
+              }`}>
+              <Icon className="w-4 h-4 shrink-0" />
+              {label}
+              {id === "products" && products.length > 0 && (
+                <span className={`ml-auto text-[11px] font-bold px-2 py-0.5 rounded-full ${activeTab === id ? "bg-white/20 text-white" : "bg-primary/10 text-primary"}`}>
+                  {products.length}
+                </span>
+              )}
             </button>
-            <button onClick={() => setActiveTab("admins")}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-semibold transition ${activeTab === "admins" ? "bg-card shadow text-primary" : "text-muted-foreground hover:text-foreground"}`}>
-              <Users className="w-3.5 h-3.5" /> Admins
-            </button>
+          ))}
+        </nav>
+
+        {/* User info + logout */}
+        <div className="px-3 py-4 border-t border-border/60 space-y-2">
+          {currentUser && (
+            <div className="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-muted/60">
+              <div className="w-8 h-8 rounded-full bg-gradient-primary grid place-items-center shrink-0">
+                <span className="text-white text-xs font-bold">{currentUser.email[0].toUpperCase()}</span>
+              </div>
+              <div className="min-w-0">
+                <p className="text-xs font-semibold truncate">{currentUser.name}</p>
+                <p className="text-[11px] text-muted-foreground truncate">{currentUser.email}</p>
+              </div>
+            </div>
+          )}
+          <button onClick={handleLogout}
+            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition">
+            <LogOut className="w-4 h-4" /> Logout
+          </button>
+        </div>
+      </aside>
+
+      {/* ── Main area ── */}
+      <div className="flex-1 flex flex-col min-h-screen">
+
+        {/* Top bar (mobile + page header) */}
+        <header className="sticky top-0 z-30 bg-card/80 backdrop-blur border-b border-border/50 px-4 md:px-8 h-14 flex items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            {/* Mobile logo */}
+            <div className="flex md:hidden items-center gap-2">
+              <div className="w-7 h-7 rounded-lg bg-gradient-primary grid place-items-center">
+                <ShieldCheck className="w-4 h-4 text-white" />
+              </div>
+            </div>
+            <h1 className="font-bold text-base">
+              {activeTab === "products" ? "Products" : "Admin Management"}
+            </h1>
           </div>
 
           <div className="flex items-center gap-2">
-            {currentUser && (
-              <div className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-muted text-sm">
-                <div className="w-6 h-6 rounded-full bg-gradient-primary grid place-items-center">
-                  <span className="text-white text-[10px] font-bold">{currentUser.email[0].toUpperCase()}</span>
-                </div>
-                <span className="text-muted-foreground text-xs truncate max-w-[140px]">{currentUser.email}</span>
-              </div>
-            )}
+            {/* Mobile nav */}
+            <div className="flex md:hidden items-center gap-1 bg-muted rounded-lg p-1">
+              {NAV.map(({ id, icon: Icon }) => (
+                <button key={id} onClick={() => setActiveTab(id)}
+                  className={`p-1.5 rounded-md transition ${activeTab === id ? "bg-card shadow text-primary" : "text-muted-foreground"}`}>
+                  <Icon className="w-4 h-4" />
+                </button>
+              ))}
+            </div>
+
             {activeTab === "products" && (
               <button onClick={openAdd}
                 className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-gradient-primary text-primary-foreground text-sm font-bold shadow-fun hover:opacity-90 transition">
-                <Plus className="w-4 h-4" /> <span className="hidden sm:inline">Add Product</span>
+                <Plus className="w-4 h-4" />
+                <span className="hidden sm:inline">Add Product</span>
               </button>
             )}
+
+            {/* Mobile logout */}
             <button onClick={handleLogout}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-muted text-muted-foreground text-sm font-semibold hover:bg-destructive/10 hover:text-destructive transition">
-              <LogOut className="w-4 h-4" /> <span className="hidden sm:inline">Logout</span>
+              className="flex md:hidden items-center gap-1 p-2 rounded-lg bg-muted text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition">
+              <LogOut className="w-4 h-4" />
             </button>
           </div>
-        </div>
-      </header>
+        </header>
 
-      <div className="container max-w-7xl py-8">
+        {/* Page content */}
+        <main className="flex-1 p-4 md:p-8">
 
-        {/* ── Admin Management Tab ── */}
-        {activeTab === "admins" && (
-          <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
+          {/* ── Products Tab ── */}
+          {activeTab === "products" && (
+            <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}>
 
-            {/* Current user card */}
-            <div className="bg-card rounded-2xl border border-border/50 shadow-card p-6">
-              <h2 className="font-bold text-lg mb-4 flex items-center gap-2">
-                <Users className="w-5 h-5 text-primary" /> Logged-in Admin
-              </h2>
-              {currentUser && (
-                <div className="flex items-center gap-4 p-4 rounded-xl bg-muted/50">
-                  <div className="w-12 h-12 rounded-xl bg-gradient-primary grid place-items-center shadow-fun shrink-0">
-                    <span className="text-white text-xl font-bold">{currentUser.email[0].toUpperCase()}</span>
-                  </div>
-                  <div>
-                    <p className="font-semibold">{currentUser.name}</p>
-                    <p className="text-sm text-muted-foreground">{currentUser.email}</p>
-                  </div>
-                  <span className="ml-auto px-3 py-1 rounded-full bg-green-500/10 text-green-600 text-xs font-bold">Active</span>
-                </div>
-              )}
-            </div>
+              {/* Stats */}
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+                <StatCard icon={<Package className="w-5 h-5 text-white" />} label="Total Products" value={products.length} color="bg-gradient-primary" />
+                <StatCard icon={<Tag className="w-5 h-5 text-white" />} label="With Badge" value={products.filter(p => p.badge).length} color="bg-gradient-to-br from-secondary to-highlight" />
+                <StatCard icon={<ImageIcon className="w-5 h-5 text-white" />} label="With Image" value={products.filter(p => p.image).length} color="bg-gradient-to-br from-accent to-primary" />
+                <StatCard icon={<CheckCircle2 className="w-5 h-5 text-white" />} label="Showing" value={filtered.length} color="bg-gradient-to-br from-pink to-secondary" />
+              </div>
 
-            {/* Add new admin */}
-            <div className="bg-card rounded-2xl border border-border/50 shadow-card p-6">
-              <h2 className="font-bold text-lg mb-2 flex items-center gap-2">
-                <UserPlus className="w-5 h-5 text-primary" /> Add New Admin
-              </h2>
-              <p className="text-sm text-muted-foreground mb-5">
-                নতুন admin add করতে Appwrite Dashboard থেকে user create করতে হবে। নিচের steps follow করো:
-              </p>
-              <ol className="space-y-3 mb-6">
-                {[
-                  { step: "1", text: 'Appwrite Dashboard-এ যাও এবং এই project open করো' },
-                  { step: "2", text: 'বাম সাইডবারে "Auth" → "Users" tab-এ click করো' },
-                  { step: "3", text: '"Create User" button click করো' },
-                  { step: "4", text: 'নতুন admin-এর Email এবং Password দাও' },
-                  { step: "5", text: 'Save করো — সাথে সাথে login করতে পারবে' },
-                ].map(({ step, text }) => (
-                  <li key={step} className="flex items-start gap-3">
-                    <span className="w-6 h-6 rounded-full bg-gradient-primary text-primary-foreground text-xs font-bold grid place-items-center shrink-0 mt-0.5">{step}</span>
-                    <span className="text-sm">{text}</span>
-                  </li>
-                ))}
-              </ol>
-              <a
-                href="https://cloud.appwrite.io"
-                target="_blank"
-                rel="noreferrer"
-                className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-primary text-primary-foreground font-bold shadow-fun hover:opacity-90 transition text-sm"
-              >
-                <ExternalLink className="w-4 h-4" /> Appwrite Dashboard খোলো
-              </a>
-            </div>
-
-            {/* Change password */}
-            <div className="bg-card rounded-2xl border border-border/50 shadow-card p-6">
-              <h2 className="font-bold text-lg mb-2 flex items-center gap-2">
-                <KeyRound className="w-5 h-5 text-primary" /> Password Change করতে চাও?
-              </h2>
-              <p className="text-sm text-muted-foreground mb-5">
-                যেকোনো admin-এর password Appwrite Dashboard থেকে change করা যাবে:
-              </p>
-              <ol className="space-y-3 mb-6">
-                {[
-                  { step: "1", text: 'Appwrite Dashboard → "Auth" → "Users"' },
-                  { step: "2", text: 'যে admin-এর password change করতে চাও তাকে click করো' },
-                  { step: "3", text: '"Update Password" option থেকে নতুন password দাও' },
-                ].map(({ step, text }) => (
-                  <li key={step} className="flex items-start gap-3">
-                    <span className="w-6 h-6 rounded-full bg-gradient-to-br from-secondary to-highlight text-white text-xs font-bold grid place-items-center shrink-0 mt-0.5">{step}</span>
-                    <span className="text-sm">{text}</span>
-                  </li>
-                ))}
-              </ol>
-              <a
-                href="https://cloud.appwrite.io"
-                target="_blank"
-                rel="noreferrer"
-                className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-muted border border-border font-semibold hover:bg-primary/10 hover:text-primary transition text-sm"
-              >
-                <ExternalLink className="w-4 h-4" /> Dashboard-এ যাও
-              </a>
-            </div>
-          </motion.div>
-        )}
-
-        {/* ── Products Tab ── */}
-        {activeTab === "products" && <>
-
-        {/* Stats row */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-          <StatCard icon={<Package className="w-5 h-5 text-white" />} label="Total Products" value={products.length} color="bg-gradient-primary" />
-          <StatCard icon={<Tag className="w-5 h-5 text-white" />} label="With Badge" value={products.filter(p => p.badge).length} color="bg-gradient-to-br from-secondary to-highlight" />
-          <StatCard icon={<ImageIcon className="w-5 h-5 text-white" />} label="With Image" value={products.filter(p => p.image).length} color="bg-gradient-to-br from-accent to-primary" />
-          <StatCard icon={<CheckCircle2 className="w-5 h-5 text-white" />} label="Showing" value={filtered.length} color="bg-gradient-to-br from-pink to-secondary" />
-        </div>
-
-        {/* Toolbar */}
-        <div className="flex flex-wrap items-center gap-3 mb-6">
-          <div className="relative flex-1 min-w-[200px] max-w-sm">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <input value={listSearch} onChange={(e) => setListSearch(e.target.value)}
-              placeholder="Search products..."
-              className="w-full pl-9 pr-4 py-2.5 rounded-xl border border-border bg-card shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/50 transition text-sm"
-            />
-            {listSearch && (
-              <button onClick={() => setListSearch("")} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
-                <X className="w-3.5 h-3.5" />
-              </button>
-            )}
-          </div>
-          <div className="flex items-center gap-1 bg-card border border-border rounded-xl p-1 shadow-sm">
-            <button onClick={() => setViewMode("grid")}
-              className={`p-2 rounded-lg transition ${viewMode === "grid" ? "bg-primary text-primary-foreground shadow" : "text-muted-foreground hover:text-foreground"}`}>
-              <LayoutGrid className="w-4 h-4" />
-            </button>
-            <button onClick={() => setViewMode("list")}
-              className={`p-2 rounded-lg transition ${viewMode === "list" ? "bg-primary text-primary-foreground shadow" : "text-muted-foreground hover:text-foreground"}`}>
-              <List className="w-4 h-4" />
-            </button>
-          </div>
-        </div>
-
-        {/* Product grid / list */}
-        {loading ? (
-          <div className="flex flex-col items-center justify-center py-32 gap-3">
-            <Loader2 className="w-10 h-10 animate-spin text-primary" />
-            <p className="text-muted-foreground text-sm">Loading products...</p>
-          </div>
-        ) : filtered.length === 0 ? (
-          <div className="text-center py-32 bg-card rounded-2xl border border-border/50">
-            <Package className="w-16 h-16 mx-auto text-muted-foreground/30 mb-4" />
-            <p className="font-semibold text-lg mb-1">{listSearch ? "No results found" : "No products yet"}</p>
-            <p className="text-muted-foreground text-sm">
-              {listSearch ? "Try a different keyword" : "Click \"Add Product\" to get started"}
-            </p>
-          </div>
-        ) : viewMode === "grid" ? (
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-            {filtered.map((p) => (
-              <motion.div key={p.$id} layout initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}
-                className="bg-card rounded-2xl overflow-hidden border border-border/50 shadow-card group hover:shadow-fun transition-shadow"
-              >
-                <div className="aspect-video bg-muted relative overflow-hidden">
-                  {p.image
-                    ? <img src={p.image} alt={p.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                    : <div className="w-full h-full grid place-items-center"><Package className="w-10 h-10 text-muted-foreground/30" /></div>}
-                  {p.badge && (
-                    <span className="absolute top-2 left-2 px-2 py-0.5 rounded-full bg-gradient-primary text-primary-foreground text-[11px] font-bold">
-                      {p.badge}
-                    </span>
+              {/* Toolbar */}
+              <div className="flex flex-wrap items-center gap-3 mb-6">
+                <div className="relative flex-1 min-w-[200px] max-w-sm">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <input value={listSearch} onChange={(e) => setListSearch(e.target.value)}
+                    placeholder="Search products..."
+                    className="w-full pl-9 pr-4 py-2.5 rounded-xl border border-border bg-card shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/50 transition text-sm"
+                  />
+                  {listSearch && (
+                    <button onClick={() => setListSearch("")} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
+                      <X className="w-3.5 h-3.5" />
+                    </button>
                   )}
                 </div>
-                <div className="p-4">
-                  <div className="flex items-start justify-between gap-2 mb-1">
-                    <h3 className="font-semibold text-sm line-clamp-1">{p.name}</h3>
-                    <span className="font-bold text-primary text-sm shrink-0">৳{p.price}</span>
-                  </div>
-                  <p className="text-muted-foreground text-xs line-clamp-2 mb-3 leading-relaxed">{p.description}</p>
-                  <div className="flex gap-2">
-                    <button onClick={() => openEdit(p)}
-                      className="flex-1 flex items-center justify-center gap-1 py-1.5 rounded-lg bg-muted hover:bg-primary/10 hover:text-primary text-xs font-semibold transition">
-                      <Pencil className="w-3 h-3" /> Edit
-                    </button>
-                    <button onClick={() => setDeleteConfirm(p.$id)}
-                      className="flex-1 flex items-center justify-center gap-1 py-1.5 rounded-lg bg-muted hover:bg-destructive/10 hover:text-destructive text-xs font-semibold transition">
-                      <Trash2 className="w-3 h-3" /> Delete
-                    </button>
-                  </div>
-                </div>
-              </motion.div>
-            ))}
-          </div>
-        ) : (
-          <div className="flex flex-col gap-2">
-            {filtered.map((p) => (
-              <motion.div key={p.$id} layout initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
-                className="bg-card rounded-xl border border-border/50 shadow-sm flex items-center gap-4 p-3 hover:shadow-card transition-shadow"
-              >
-                <div className="w-16 h-16 rounded-xl bg-muted overflow-hidden shrink-0">
-                  {p.image
-                    ? <img src={p.image} alt={p.name} className="w-full h-full object-cover" />
-                    : <div className="w-full h-full grid place-items-center"><Package className="w-6 h-6 text-muted-foreground/30" /></div>}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2">
-                    <h3 className="font-semibold text-sm truncate">{p.name}</h3>
-                    {p.badge && <span className="px-2 py-0.5 rounded-full bg-primary/10 text-primary text-[10px] font-bold shrink-0">{p.badge}</span>}
-                  </div>
-                  <p className="text-xs text-muted-foreground truncate mt-0.5">{p.description}</p>
-                </div>
-                <span className="font-bold text-primary text-sm shrink-0">৳{p.price}</span>
-                <div className="flex gap-2 shrink-0">
-                  <button onClick={() => openEdit(p)}
-                    className="p-2 rounded-lg bg-muted hover:bg-primary/10 hover:text-primary transition">
-                    <Pencil className="w-3.5 h-3.5" />
+                <div className="flex items-center gap-1 bg-card border border-border rounded-xl p-1 shadow-sm">
+                  <button onClick={() => setViewMode("grid")}
+                    className={`p-2 rounded-lg transition ${viewMode === "grid" ? "bg-primary text-primary-foreground shadow" : "text-muted-foreground hover:text-foreground"}`}>
+                    <LayoutGrid className="w-4 h-4" />
                   </button>
-                  <button onClick={() => setDeleteConfirm(p.$id)}
-                    className="p-2 rounded-lg bg-muted hover:bg-destructive/10 hover:text-destructive transition">
-                    <Trash2 className="w-3.5 h-3.5" />
+                  <button onClick={() => setViewMode("list")}
+                    className={`p-2 rounded-lg transition ${viewMode === "list" ? "bg-primary text-primary-foreground shadow" : "text-muted-foreground hover:text-foreground"}`}>
+                    <List className="w-4 h-4" />
                   </button>
                 </div>
-              </motion.div>
-            ))}
-          </div>
-        )}
-        </>}
+              </div>
+
+              {/* Product list */}
+              {loading ? (
+                <div className="flex flex-col items-center justify-center py-32 gap-3">
+                  <Loader2 className="w-10 h-10 animate-spin text-primary" />
+                  <p className="text-muted-foreground text-sm">Loading products...</p>
+                </div>
+              ) : filtered.length === 0 ? (
+                <div className="text-center py-32 bg-card rounded-2xl border border-border/50">
+                  <Package className="w-16 h-16 mx-auto text-muted-foreground/30 mb-4" />
+                  <p className="font-semibold text-lg mb-1">{listSearch ? "No results found" : "No products yet"}</p>
+                  <p className="text-muted-foreground text-sm">
+                    {listSearch ? "Try a different keyword" : "Click \"Add Product\" to get started"}
+                  </p>
+                </div>
+              ) : viewMode === "grid" ? (
+                <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                  {filtered.map((p) => (
+                    <motion.div key={p.$id} layout initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}
+                      className="bg-card rounded-2xl overflow-hidden border border-border/50 shadow-card group hover:shadow-fun transition-shadow"
+                    >
+                      <div className="aspect-video bg-muted relative overflow-hidden">
+                        {p.image
+                          ? <img src={p.image} alt={p.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                          : <div className="w-full h-full grid place-items-center"><Package className="w-10 h-10 text-muted-foreground/30" /></div>}
+                        {p.badge && (
+                          <span className="absolute top-2 left-2 px-2 py-0.5 rounded-full bg-gradient-primary text-primary-foreground text-[11px] font-bold">
+                            {p.badge}
+                          </span>
+                        )}
+                      </div>
+                      <div className="p-4">
+                        <div className="flex items-start justify-between gap-2 mb-1">
+                          <h3 className="font-semibold text-sm line-clamp-1">{p.name}</h3>
+                          <span className="font-bold text-primary text-sm shrink-0">৳{p.price}</span>
+                        </div>
+                        <p className="text-muted-foreground text-xs line-clamp-2 mb-3 leading-relaxed">{p.description}</p>
+                        <div className="flex gap-2">
+                          <button onClick={() => openEdit(p)}
+                            className="flex-1 flex items-center justify-center gap-1 py-1.5 rounded-lg bg-muted hover:bg-primary/10 hover:text-primary text-xs font-semibold transition">
+                            <Pencil className="w-3 h-3" /> Edit
+                          </button>
+                          <button onClick={() => setDeleteConfirm(p.$id)}
+                            className="flex-1 flex items-center justify-center gap-1 py-1.5 rounded-lg bg-muted hover:bg-destructive/10 hover:text-destructive text-xs font-semibold transition">
+                            <Trash2 className="w-3 h-3" /> Delete
+                          </button>
+                        </div>
+                      </div>
+                    </motion.div>
+                  ))}
+                </div>
+              ) : (
+                <div className="flex flex-col gap-2">
+                  {filtered.map((p) => (
+                    <motion.div key={p.$id} layout initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
+                      className="bg-card rounded-xl border border-border/50 shadow-sm flex items-center gap-4 p-3 hover:shadow-card transition-shadow"
+                    >
+                      <div className="w-14 h-14 rounded-xl bg-muted overflow-hidden shrink-0">
+                        {p.image
+                          ? <img src={p.image} alt={p.name} className="w-full h-full object-cover" />
+                          : <div className="w-full h-full grid place-items-center"><Package className="w-5 h-5 text-muted-foreground/30" /></div>}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <h3 className="font-semibold text-sm truncate">{p.name}</h3>
+                          {p.badge && <span className="px-2 py-0.5 rounded-full bg-primary/10 text-primary text-[10px] font-bold shrink-0">{p.badge}</span>}
+                        </div>
+                        <p className="text-xs text-muted-foreground truncate mt-0.5">{p.description}</p>
+                      </div>
+                      <span className="font-bold text-primary text-sm shrink-0">৳{p.price}</span>
+                      <div className="flex gap-2 shrink-0">
+                        <button onClick={() => openEdit(p)}
+                          className="p-2 rounded-lg bg-muted hover:bg-primary/10 hover:text-primary transition">
+                          <Pencil className="w-3.5 h-3.5" />
+                        </button>
+                        <button onClick={() => setDeleteConfirm(p.$id)}
+                          className="p-2 rounded-lg bg-muted hover:bg-destructive/10 hover:text-destructive transition">
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    </motion.div>
+                  ))}
+                </div>
+              )}
+            </motion.div>
+          )}
+
+          {/* ── Admin Management Tab ── */}
+          {activeTab === "admins" && (
+            <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="max-w-2xl space-y-6">
+
+              {/* Current user */}
+              <div className="bg-card rounded-2xl border border-border/50 shadow-card p-6">
+                <h2 className="font-bold text-base mb-4 flex items-center gap-2">
+                  <Users className="w-4 h-4 text-primary" /> Logged-in Admin
+                </h2>
+                {currentUser && (
+                  <div className="flex items-center gap-4 p-4 rounded-xl bg-muted/50">
+                    <div className="w-11 h-11 rounded-xl bg-gradient-primary grid place-items-center shadow-fun shrink-0">
+                      <span className="text-white text-lg font-bold">{currentUser.email[0].toUpperCase()}</span>
+                    </div>
+                    <div className="min-w-0">
+                      <p className="font-semibold text-sm">{currentUser.name}</p>
+                      <p className="text-xs text-muted-foreground truncate">{currentUser.email}</p>
+                    </div>
+                    <span className="ml-auto px-3 py-1 rounded-full bg-green-500/10 text-green-600 text-xs font-bold shrink-0">● Active</span>
+                  </div>
+                )}
+              </div>
+
+              {/* Add admin */}
+              <div className="bg-card rounded-2xl border border-border/50 shadow-card p-6">
+                <h2 className="font-bold text-base mb-1 flex items-center gap-2">
+                  <UserPlus className="w-4 h-4 text-primary" /> Add New Admin
+                </h2>
+                <p className="text-sm text-muted-foreground mb-5">নতুন admin add করতে Appwrite Dashboard থেকে user create করতে হবে।</p>
+                <ol className="space-y-3 mb-6">
+                  {[
+                    'Appwrite Dashboard-এ যাও এবং project open করো',
+                    'বাম সাইডবারে "Auth" → "Users" tab click করো',
+                    '"Create User" button click করো',
+                    'নতুন admin-এর Email ও Password দাও',
+                    'Save করো — সাথে সাথে login করতে পারবে',
+                  ].map((text, i) => (
+                    <li key={i} className="flex items-start gap-3">
+                      <span className="w-6 h-6 rounded-full bg-gradient-primary text-primary-foreground text-xs font-bold grid place-items-center shrink-0 mt-0.5">{i + 1}</span>
+                      <span className="text-sm">{text}</span>
+                    </li>
+                  ))}
+                </ol>
+                <a href="https://cloud.appwrite.io" target="_blank" rel="noreferrer"
+                  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-primary text-primary-foreground font-bold shadow-fun hover:opacity-90 transition text-sm">
+                  <ExternalLink className="w-4 h-4" /> Appwrite Dashboard খোলো
+                </a>
+              </div>
+
+              {/* Change password */}
+              <div className="bg-card rounded-2xl border border-border/50 shadow-card p-6">
+                <h2 className="font-bold text-base mb-1 flex items-center gap-2">
+                  <KeyRound className="w-4 h-4 text-primary" /> Password Change
+                </h2>
+                <p className="text-sm text-muted-foreground mb-5">যেকোনো admin-এর password Appwrite Dashboard থেকে change করা যাবে।</p>
+                <ol className="space-y-3 mb-6">
+                  {[
+                    'Appwrite Dashboard → "Auth" → "Users"',
+                    'যে admin-এর password change করতে চাও তাকে click করো',
+                    '"Update Password" থেকে নতুন password দাও',
+                  ].map((text, i) => (
+                    <li key={i} className="flex items-start gap-3">
+                      <span className="w-6 h-6 rounded-full bg-gradient-to-br from-secondary to-highlight text-white text-xs font-bold grid place-items-center shrink-0 mt-0.5">{i + 1}</span>
+                      <span className="text-sm">{text}</span>
+                    </li>
+                  ))}
+                </ol>
+                <a href="https://cloud.appwrite.io" target="_blank" rel="noreferrer"
+                  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-muted border border-border font-semibold hover:bg-primary/10 hover:text-primary transition text-sm">
+                  <ExternalLink className="w-4 h-4" /> Dashboard-এ যাও
+                </a>
+              </div>
+            </motion.div>
+          )}
+
+        </main>
       </div>
 
       {/* ── Add / Edit Modal ── */}
