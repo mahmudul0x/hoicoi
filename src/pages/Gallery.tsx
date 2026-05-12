@@ -56,7 +56,7 @@ export default function Gallery() {
             <p className="text-muted-foreground text-lg">No photos yet.</p>
           </div>
         ) : (
-          <motion.div layout className="columns-1 sm:columns-2 lg:columns-3 gap-4 [column-fill:_balance]">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
             <AnimatePresence>
               {photos.map((photo, i) => (
                 <motion.button
@@ -65,22 +65,22 @@ export default function Gallery() {
                   initial={{ opacity: 0, scale: 0.9 }}
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0, scale: 0.9 }}
-                  transition={{ duration: 0.4, delay: (i % 6) * 0.05 }}
+                  transition={{ duration: 0.4, delay: (i % 8) * 0.05 }}
                   onClick={() => setOpen(photo)}
-                  className="mb-4 block w-full overflow-hidden rounded-3xl group relative break-inside-avoid"
+                  className="relative aspect-square overflow-hidden rounded-3xl group bg-muted"
                 >
                   <img src={photo.image} alt={photo.caption || "Gallery"} loading="lazy"
-                    className="w-full transition duration-700 group-hover:scale-110" />
-                  <div className="absolute inset-0 bg-gradient-to-t from-primary/80 via-transparent opacity-0 group-hover:opacity-100 transition" />
+                    className="w-full h-full object-cover transition duration-700 group-hover:scale-110" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent opacity-0 group-hover:opacity-100 transition" />
                   {photo.caption && (
-                    <div className="absolute bottom-3 left-3 right-3 text-white opacity-0 group-hover:opacity-100 transition translate-y-2 group-hover:translate-y-0 font-bold text-left">
+                    <div className="absolute bottom-3 left-3 right-3 text-white opacity-0 group-hover:opacity-100 transition translate-y-2 group-hover:translate-y-0 font-bold text-left text-sm">
                       {photo.caption}
                     </div>
                   )}
                 </motion.button>
               ))}
             </AnimatePresence>
-          </motion.div>
+          </div>
         )}
       </section>
 
@@ -100,9 +100,9 @@ export default function Gallery() {
                 {open.caption}
               </motion.p>
             )}
-            <button onClick={() => setOpen(null)}
-              className="absolute top-5 right-5 w-12 h-12 rounded-full bg-white text-foreground grid place-items-center">
-              <X />
+            <button onClick={(e) => { e.stopPropagation(); setOpen(null); }}
+              className="absolute top-5 right-5 w-10 h-10 rounded-full bg-black/60 backdrop-blur text-white grid place-items-center hover:bg-black/80 transition">
+              <X className="w-5 h-5" />
             </button>
           </motion.div>
         )}

@@ -467,22 +467,28 @@ function Testimonials() {
 function MapSection() {
   return (
     <section className="container py-20">
-      <div className="grid lg:grid-cols-5 gap-6 rounded-5xl overflow-hidden shadow-card">
-        <div className="lg:col-span-2 p-10 bg-gradient-primary text-primary-foreground">
-          <MapPin className="w-10 h-10 mb-4" />
-          <h2 className="font-display text-3xl md:text-4xl font-bold leading-tight">Find Us in Dinajpur</h2>
-          <p className="mt-4 opacity-95">{SITE.address}</p>
-          <p className="opacity-80 text-sm mt-1">({SITE.addressNote})</p>
-          <div className="mt-6 space-y-2">
-            <a href={`tel:${SITE.phone}`} className="flex items-center gap-2 hover:underline"><Phone className="w-4 h-4" /> {SITE.phone}</a>
+      <div className="rounded-5xl overflow-hidden shadow-card border border-border/30">
+        <div className="grid lg:grid-cols-5">
+          <div className="lg:col-span-2 p-10 bg-gradient-primary text-primary-foreground flex flex-col justify-center">
+            <MapPin className="w-10 h-10 mb-4" />
+            <h2 className="font-display text-3xl md:text-4xl font-bold leading-tight">Find Us in Dinajpur</h2>
+            <p className="mt-4 opacity-95">{SITE.address}</p>
+            <p className="opacity-80 text-sm mt-1">({SITE.addressNote})</p>
+            <div className="mt-6 space-y-2">
+              <a href={`tel:${SITE.phone}`} className="flex items-center gap-2 hover:underline font-semibold">
+                <Phone className="w-4 h-4" /> {SITE.phone}
+              </a>
+            </div>
+          </div>
+          <div className="lg:col-span-3 min-h-[400px]">
+            <iframe
+              src={SITE.mapsEmbed}
+              className="w-full h-full min-h-[400px] border-0 block"
+              loading="lazy"
+              title="Map"
+            />
           </div>
         </div>
-        <iframe
-          src={SITE.mapsEmbed}
-          className="lg:col-span-3 w-full h-[400px] lg:h-auto border-0"
-          loading="lazy"
-          title="Map"
-        />
       </div>
     </section>
   );

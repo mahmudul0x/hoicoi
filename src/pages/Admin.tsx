@@ -5,7 +5,7 @@ import {
   ShieldCheck, Search, Loader2, Upload, ImageIcon,
   Tag, Package, LayoutGrid, List, CheckCircle2, Mail, Lock,
   UserPlus, ExternalLink, Users, KeyRound, Image, Megaphone,
-  BarChart2, TrendingUp, Eye, Globe, ToggleLeft, ToggleRight,
+  BarChart2, TrendingUp, Eye, Globe, ToggleLeft, ToggleRight, Menu,
 } from "lucide-react";
 import {
   type Product, type GalleryPhoto, type Offer,
@@ -58,6 +58,7 @@ export default function Admin() {
   const [loginError, setLoginError] = useState("");
   const [loginLoading, setLoginLoading] = useState(false);
   const [activeTab, setActiveTab] = useState<"products" | "gallery" | "offers" | "analytics" | "admins">("products");
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   // Gallery state
   const [gallery, setGallery] = useState<GalleryPhoto[]>([]);
@@ -429,6 +430,90 @@ export default function Admin() {
         </div>
       </aside>
 
+      {/* ── Mobile drawer ── */}
+      <AnimatePresence>
+        {mobileMenuOpen && (
+          <>
+            {/* Backdrop */}
+            <motion.div
+              key="backdrop"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setMobileMenuOpen(false)}
+              className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm md:hidden"
+            />
+            {/* Drawer */}
+            <motion.aside
+              key="drawer"
+              initial={{ x: "-100%" }}
+              animate={{ x: 0 }}
+              exit={{ x: "-100%" }}
+              transition={{ type: "spring", damping: 28, stiffness: 300 }}
+              className="fixed inset-y-0 left-0 z-50 w-72 flex flex-col bg-card border-r border-border/60 md:hidden shadow-xl"
+            >
+              {/* Drawer header */}
+              <div className="flex items-center justify-between px-5 py-5 border-b border-border/60">
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-xl bg-gradient-primary grid place-items-center shadow-fun shrink-0">
+                    <ShieldCheck className="w-5 h-5 text-white" />
+                  </div>
+                  <div>
+                    <p className="font-bold text-sm leading-tight">Hoichoi Admin</p>
+                    <p className="text-[11px] text-muted-foreground">Dashboard</p>
+                  </div>
+                </div>
+                <button onClick={() => setMobileMenuOpen(false)}
+                  className="w-8 h-8 rounded-lg bg-muted grid place-items-center text-muted-foreground hover:text-foreground transition">
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              {/* Drawer nav */}
+              <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
+                <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60 px-3 mb-2">Menu</p>
+                {NAV.map(({ id, label, icon: Icon }) => (
+                  <button key={id}
+                    onClick={() => { setActiveTab(id); setMobileMenuOpen(false); }}
+                    className={`w-full flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-semibold transition-all ${
+                      activeTab === id
+                        ? "bg-primary text-primary-foreground shadow-fun"
+                        : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                    }`}>
+                    <Icon className="w-4 h-4 shrink-0" />
+                    {label}
+                    {id === "products" && products.length > 0 && (
+                      <span className={`ml-auto text-[11px] font-bold px-2 py-0.5 rounded-full ${activeTab === id ? "bg-white/20 text-white" : "bg-primary/10 text-primary"}`}>
+                        {products.length}
+                      </span>
+                    )}
+                  </button>
+                ))}
+              </nav>
+
+              {/* Drawer user + logout */}
+              <div className="px-3 py-4 border-t border-border/60 space-y-2">
+                {currentUser && (
+                  <div className="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-muted/60">
+                    <div className="w-8 h-8 rounded-full bg-gradient-primary grid place-items-center shrink-0">
+                      <span className="text-white text-xs font-bold">{currentUser.email[0].toUpperCase()}</span>
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-xs font-semibold truncate">{currentUser.name}</p>
+                      <p className="text-[11px] text-muted-foreground truncate">{currentUser.email}</p>
+                    </div>
+                  </div>
+                )}
+                <button onClick={() => { handleLogout(); setMobileMenuOpen(false); }}
+                  className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition">
+                  <LogOut className="w-4 h-4" /> Logout
+                </button>
+              </div>
+            </motion.aside>
+          </>
+        )}
+      </AnimatePresence>
+
       {/* ── Main area ── */}
       <div className="flex-1 flex flex-col overflow-y-auto">
 
@@ -447,16 +532,6 @@ export default function Admin() {
           </div>
 
           <div className="flex items-center gap-2">
-            {/* Mobile nav */}
-            <div className="flex md:hidden items-center gap-1 bg-muted rounded-lg p-1">
-              {NAV.map(({ id, icon: Icon }) => (
-                <button key={id} onClick={() => setActiveTab(id)}
-                  className={`p-1.5 rounded-md transition ${activeTab === id ? "bg-card shadow text-primary" : "text-muted-foreground"}`}>
-                  <Icon className="w-4 h-4" />
-                </button>
-              ))}
-            </div>
-
             {activeTab === "products" && (
               <button onClick={openAdd}
                 className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-gradient-primary text-primary-foreground text-sm font-bold shadow-fun hover:opacity-90 transition">
@@ -465,10 +540,10 @@ export default function Admin() {
               </button>
             )}
 
-            {/* Mobile logout */}
-            <button onClick={handleLogout}
-              className="flex md:hidden items-center gap-1 p-2 rounded-lg bg-muted text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition">
-              <LogOut className="w-4 h-4" />
+            {/* Hamburger (mobile only) */}
+            <button onClick={() => setMobileMenuOpen(true)}
+              className="flex md:hidden items-center justify-center w-9 h-9 rounded-lg bg-muted text-muted-foreground hover:text-foreground transition">
+              <Menu className="w-5 h-5" />
             </button>
           </div>
         </header>
