@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://www.hoichoikhelaghor.com/sitemap.xml
+Sitemap: https://hoichoikhelaghor.com/sitemap.xml
