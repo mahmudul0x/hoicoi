@@ -86,7 +86,7 @@ export default function Contact() {
                 { icon: Phone, label: "Phone", value: SITE.phone, href: `tel:${SITE.phone}` },
                 { icon: MessageCircle, label: "WhatsApp", value: SITE.phone, href: `https://wa.me/${SITE.whatsapp}`, external: true },
                 { icon: Mail, label: "Email", value: SITE.email, href: `mailto:${SITE.email}` },
-                { icon: Clock, label: "Hours", value: "Sat–Thu: 9AM–9PM", value2: "Fri: 2PM–9PM", href: null },
+                { icon: Clock, label: "Hours", value: "Sat–Thu: 3 PM – 9 PM", value2: "Fri & Govt. Holiday: 9:30 AM – 10 PM", href: null },
                 { icon: MapPin, label: "Address", value: SITE.address, href: null, full: true },
               ].map(({ icon: Icon, label, value, value2, href, external, full }) => (
                 <div key={label} className={`flex flex-col gap-2 ${full ? "col-span-2" : ""}`}>

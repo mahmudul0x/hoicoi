@@ -3,67 +3,73 @@ import { Link } from "react-router-dom";
 import { ArrowRight } from "lucide-react";
 import PageHero from "@/components/PageHero";
 import { usePageView } from "@/hooks/useAnalytics";
+import ballHouseImg from "@/assets/ball-house.jpg";
+import slidesImg from "@/assets/Slides.jpg";
+import climbingImg from "@/assets/Climbing.jpg";
+import trampolineImg from "@/assets/trampoline.jpg";
+import merryGoRoundImg from "@/assets/merry-go-round.jpg";
+import paddleBikeImg from "@/assets/paddle-bike.jpg";
 
 const zones = [
   {
     emoji: "🏍️",
     title: "Motor Bike",
     color: "from-primary to-pink",
-    image: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=500&q=80",
+    image: "https://images.unsplash.com/photo-1449426468159-d96dbf08f19f?w=500&q=80",
   },
   {
     emoji: "🚗",
     title: "Car Ride",
     color: "from-highlight to-secondary",
-    image: "https://images.unsplash.com/photo-1594787317109-f04c882b4a7f?w=500&q=80",
+    image: "https://images.unsplash.com/photo-1536700503339-1e4b06520771?w=500&q=80",
   },
   {
     emoji: "⚽",
     title: "Table Soccer",
     color: "from-secondary to-highlight",
-    image: "https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=500&q=80",
+    image: "https://images.unsplash.com/photo-1560272564-c83b66b1ad12?w=500&q=80",
   },
   {
     emoji: "🏠",
     title: "Toy House",
     color: "from-accent to-primary",
-    image: "https://images.unsplash.com/photo-1617195737496-bc30194e3a19?w=500&q=80",
+    image: "https://images.unsplash.com/photo-1471286174890-9c112ac6823d?w=500&q=80",
   },
   {
     emoji: "🛒",
     title: "Super Shop",
     color: "from-pink to-accent",
-    image: "https://images.unsplash.com/photo-1512909006721-3d6018887383?w=500&q=80",
+    image: "https://images.unsplash.com/photo-1530103862676-de8c9debad1d?w=500&q=80",
   },
   {
     emoji: "🧩",
     title: "Puzzle Zone",
     color: "from-primary to-highlight",
-    image: "https://images.unsplash.com/photo-1606092195730-5d7b9af1efc5?w=500&q=80",
+    image: "https://images.unsplash.com/photo-1611996575749-79a3a250f948?w=500&q=80",
   },
   {
     emoji: "🎨",
     title: "Drawing Zone",
     color: "from-secondary to-pink",
-    image: "https://images.unsplash.com/photo-1560807707-8cc77767d783?w=500&q=80",
+    image: "https://images.unsplash.com/photo-1452860606245-08befc0ff44b?w=500&q=80",
   },
   {
     emoji: "🎮",
     title: "Video Games",
     color: "from-highlight to-primary",
-    image: "https://images.unsplash.com/photo-1511512578047-dfb367046420?w=500&q=80",
+    image: "https://images.unsplash.com/photo-1493711662062-fa541adb3fc8?w=500&q=80",
   },
   {
     emoji: "🛝",
     title: "Soft Play Zone",
     color: "from-accent to-secondary",
-    image: "https://images.unsplash.com/photo-1503454537195-1dcabb73ffb9?w=500&q=80",
+    image: "https://images.unsplash.com/photo-1526634332515-d56c5fd16991?w=500&q=80",
   },
   {
     emoji: "🎂",
     title: "Birthday Party Hall",
     color: "from-pink to-primary",
-    image: "https://images.unsplash.com/photo-1530103862676-de8c9debad1d?w=500&q=80",
+    image: "https://images.unsplash.com/photo-1464349095431-e9a21285b5f3?w=500&q=80",
   },
 ];
 
@@ -71,43 +77,43 @@ const playActivities = [
   {
     emoji: "⚽",
     title: "Ball House",
-    image: "https://images.unsplash.com/photo-1566220853133-9d17b5d939ce?w=500&q=80",
+    image: ballHouseImg,
     color: "from-secondary to-highlight",
   },
   {
     emoji: "🛝",
     title: "Slides",
-    image: "https://images.unsplash.com/photo-1575783970733-1aaedde1db74?w=500&q=80",
+    image: slidesImg,
     color: "from-primary to-pink",
   },
   {
     emoji: "🧗",
     title: "Climbing",
-    image: "https://images.unsplash.com/photo-1619468129361-605ebea04b44?w=500&q=80",
+    image: climbingImg,
     color: "from-highlight to-secondary",
   },
   {
     emoji: "🤸",
     title: "Trampoline",
-    image: "https://images.unsplash.com/photo-1508098682722-e99c43a406b2?w=500&q=80",
+    image: trampolineImg,
     color: "from-accent to-primary",
   },
   {
     emoji: "🎠",
     title: "Merry-Go-Round",
-    image: "https://images.unsplash.com/photo-1516802273409-68526ee1bdd6?w=500&q=80",
+    image: merryGoRoundImg,
     color: "from-pink to-accent",
   },
   {
     emoji: "🚲",
     title: "Paddle Bike",
-    image: "https://images.unsplash.com/photo-1485965120184-e220f721d03e?w=500&q=80",
+    image: paddleBikeImg,
     color: "from-highlight to-primary",
   },
   {
     emoji: "📚",
     title: "Book Reading",
-    image: "https://images.unsplash.com/photo-1512820790803-83ca734da794?w=500&q=80",
+    image: "https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?w=500&q=80",
     color: "from-secondary to-pink",
   },
 ];

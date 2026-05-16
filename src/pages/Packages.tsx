@@ -36,7 +36,7 @@ const memberships = [
   {
     name: "1 Month",
     price: "1,200",
-    note: "যত খুশি ততবার",
+    note: "যত খুশি ততবার (Daily 1 Hour)",
     sub: "Unlimited visits for 1 month",
     color: "from-secondary to-highlight",
     icon: Star,

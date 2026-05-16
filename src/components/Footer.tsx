@@ -53,7 +53,10 @@ export default function Footer() {
               </a>
             ))}
           </div>
-          <p className="mt-6 text-xs opacity-60">Open daily • 10 AM – 9 PM</p>
+          <p className="mt-4 text-xs opacity-60 leading-relaxed">
+            Sat–Thu: 3 PM – 9 PM<br />
+            Fri & Holidays: 9:30 AM – 10 PM
+          </p>
         </div>
       </div>
       <div className="border-t border-white/10">
