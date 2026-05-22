@@ -55,6 +55,7 @@ export type GalleryPhoto = {
   image: string;
   caption?: string;
   publicId?: string;
+  type?: "image" | "video" | "youtube";
 };
 
 export async function fetchGallery(): Promise<GalleryPhoto[]> {

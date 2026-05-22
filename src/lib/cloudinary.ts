@@ -6,13 +6,13 @@ export type CloudinaryResult = {
   public_id: string;
 };
 
-export async function uploadToCloudinary(file: File): Promise<CloudinaryResult> {
+export async function uploadToCloudinary(file: File, resourceType: "image" | "video" = "image"): Promise<CloudinaryResult> {
   const formData = new FormData();
   formData.append("file", file);
   formData.append("upload_preset", UPLOAD_PRESET);
 
   const res = await fetch(
-    `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`,
+    `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/${resourceType}/upload`,
     { method: "POST", body: formData }
   );
 

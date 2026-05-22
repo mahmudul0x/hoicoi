@@ -5,7 +5,7 @@ import {
   ShieldCheck, Search, Loader2, Upload, ImageIcon,
   Tag, Package, LayoutGrid, List, CheckCircle2, Mail, Lock,
   UserPlus, ExternalLink, Users, KeyRound, Image, Megaphone,
-  BarChart2, TrendingUp, Eye, Globe, ToggleLeft, ToggleRight, Menu,
+  BarChart2, TrendingUp, Eye, Globe, ToggleLeft, ToggleRight, Menu, Video, Play,
 } from "lucide-react";
 import {
   type Product, type GalleryPhoto, type Offer,
@@ -18,6 +18,11 @@ import {
 import { uploadToCloudinary } from "@/lib/cloudinary";
 
 const UNSPLASH_KEY = import.meta.env.VITE_UNSPLASH_ACCESS_KEY;
+
+function getYouTubeId(url: string): string | null {
+  const m = url.match(/(?:v=|youtu\.be\/|embed\/)([a-zA-Z0-9_-]{11})/);
+  return m ? m[1] : null;
+}
 
 type UnsplashPhoto = {
   id: string;
@@ -65,7 +70,12 @@ export default function Admin() {
   const [galleryLoading, setGalleryLoading] = useState(false);
   const [galleryCaption, setGalleryCaption] = useState("");
   const [galleryUploading, setGalleryUploading] = useState(false);
+  const [videoUploading, setVideoUploading] = useState(false);
+  const [youtubeUrl, setYoutubeUrl] = useState("");
+  const [youtubeCaption, setYoutubeCaption] = useState("");
+  const [youtubeSaving, setYoutubeSaving] = useState(false);
   const galleryFileRef = useRef<HTMLInputElement>(null);
+  const videoFileRef = useRef<HTMLInputElement>(null);
   const [editingGallery, setEditingGallery] = useState<GalleryPhoto | null>(null);
   const [editingGalleryCaption, setEditingGalleryCaption] = useState("");
 
@@ -146,8 +156,8 @@ export default function Admin() {
     if (!file) return;
     setGalleryUploading(true);
     try {
-      const { secure_url, public_id } = await uploadToCloudinary(file);
-      await createGalleryPhoto({ image: secure_url, caption: galleryCaption, publicId: public_id });
+      const { secure_url, public_id } = await uploadToCloudinary(file, "image");
+      await createGalleryPhoto({ image: secure_url, caption: galleryCaption, publicId: public_id, type: "image" });
       setGalleryCaption("");
       await loadGallery();
     } catch { /* silent */ }
@@ -155,6 +165,34 @@ export default function Admin() {
       setGalleryUploading(false);
       if (galleryFileRef.current) galleryFileRef.current.value = "";
     }
+  }
+
+  async function handleVideoUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setVideoUploading(true);
+    try {
+      const { secure_url, public_id } = await uploadToCloudinary(file, "video");
+      await createGalleryPhoto({ image: secure_url, caption: galleryCaption, publicId: public_id, type: "video" });
+      setGalleryCaption("");
+      await loadGallery();
+    } catch { /* silent */ }
+    finally {
+      setVideoUploading(false);
+      if (videoFileRef.current) videoFileRef.current.value = "";
+    }
+  }
+
+  async function handleAddYoutube() {
+    if (!youtubeUrl.trim()) return;
+    setYoutubeSaving(true);
+    try {
+      await createGalleryPhoto({ image: youtubeUrl.trim(), caption: youtubeCaption, type: "youtube" as "video" });
+      setYoutubeUrl("");
+      setYoutubeCaption("");
+      await loadGallery();
+    } catch { /* silent */ }
+    finally { setYoutubeSaving(false); }
   }
 
   async function handleDeleteGalleryPhoto(id: string) {
@@ -680,17 +718,34 @@ export default function Admin() {
             <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}>
               {/* Upload bar */}
               <div className="bg-card rounded-2xl border border-border/50 shadow-card p-6 mb-6">
-                <h2 className="font-bold text-base mb-4 flex items-center gap-2"><Upload className="w-4 h-4 text-primary" /> Upload Photo to Cloudinary</h2>
+                <h2 className="font-bold text-base mb-4 flex items-center gap-2"><Upload className="w-4 h-4 text-primary" /> Upload to Gallery</h2>
                 <div className="flex flex-col sm:flex-row gap-3">
                   <input value={galleryCaption} onChange={e => setGalleryCaption(e.target.value)}
                     placeholder="Caption (optional)" className={`${inputCls} flex-1`} />
-                  <button onClick={() => galleryFileRef.current?.click()} disabled={galleryUploading}
+                  <button onClick={() => galleryFileRef.current?.click()} disabled={galleryUploading || videoUploading}
                     className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-primary text-primary-foreground font-bold shadow-fun hover:opacity-90 transition disabled:opacity-60 shrink-0">
-                    {galleryUploading ? <><Loader2 className="w-4 h-4 animate-spin" /> Uploading...</> : <><Upload className="w-4 h-4" /> Upload Photo</>}
+                    {galleryUploading ? <><Loader2 className="w-4 h-4 animate-spin" /> Uploading...</> : <><Image className="w-4 h-4" /> Upload Photo</>}
+                  </button>
+                  <button onClick={() => videoFileRef.current?.click()} disabled={galleryUploading || videoUploading}
+                    className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-secondary text-secondary-foreground font-bold hover:opacity-90 transition disabled:opacity-60 shrink-0">
+                    {videoUploading ? <><Loader2 className="w-4 h-4 animate-spin" /> Uploading...</> : <><Video className="w-4 h-4" /> Upload Video</>}
                   </button>
                   <input ref={galleryFileRef} type="file" accept="image/*" className="hidden" onChange={handleGalleryUpload} />
+                  <input ref={videoFileRef} type="file" accept="video/*" className="hidden" onChange={handleVideoUpload} />
                 </div>
-                <p className="text-xs text-muted-foreground mt-2">Photos are uploaded to Cloudinary and saved in Appwrite gallery collection.</p>
+
+                {/* YouTube row */}
+                <div className="flex flex-col sm:flex-row gap-3 mt-3 pt-3 border-t border-border/40">
+                  <input value={youtubeUrl} onChange={e => setYoutubeUrl(e.target.value)}
+                    placeholder="YouTube video URL (e.g. https://www.youtube.com/watch?v=...)" className={`${inputCls} flex-1`} />
+                  <input value={youtubeCaption} onChange={e => setYoutubeCaption(e.target.value)}
+                    placeholder="Caption (optional)" className={`${inputCls} sm:w-48`} />
+                  <button onClick={handleAddYoutube} disabled={youtubeSaving || !youtubeUrl.trim()}
+                    className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-red-500 text-white font-bold hover:opacity-90 transition disabled:opacity-50 shrink-0">
+                    {youtubeSaving ? <><Loader2 className="w-4 h-4 animate-spin" /> Saving...</> : <><Play className="w-4 h-4 fill-white" /> Add YouTube</>}
+                  </button>
+                </div>
+                <p className="text-xs text-muted-foreground mt-2">Photos and videos upload to Cloudinary. YouTube links are saved directly.</p>
               </div>
 
               {/* Edit caption modal */}
@@ -703,7 +758,13 @@ export default function Admin() {
                       onClick={e => e.stopPropagation()}
                       className="bg-card rounded-2xl p-6 shadow-card border border-border/50 w-full max-w-sm space-y-4">
                       <h3 className="font-bold">Edit Caption</h3>
-                      <img src={editingGallery.image} alt="" className="w-full aspect-video object-cover rounded-xl" />
+                      {editingGallery.type === "youtube" ? (
+                        <img src={`https://img.youtube.com/vi/${getYouTubeId(editingGallery.image)}/hqdefault.jpg`} alt="" className="w-full aspect-video object-cover rounded-xl" />
+                      ) : editingGallery.type === "video" ? (
+                        <video src={editingGallery.image} className="w-full aspect-video object-cover rounded-xl" controls muted />
+                      ) : (
+                        <img src={editingGallery.image} alt="" className="w-full aspect-video object-cover rounded-xl" />
+                      )}
                       <input value={editingGalleryCaption} onChange={e => setEditingGalleryCaption(e.target.value)}
                         placeholder="Caption..." className={inputCls} />
                       <div className="flex gap-3">
@@ -731,7 +792,28 @@ export default function Admin() {
                   {gallery.map(photo => (
                     <motion.div key={photo.$id} layout initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }}
                       className="group relative aspect-square rounded-2xl overflow-hidden border border-border/50 shadow-card bg-muted">
-                      <img src={photo.image} alt={photo.caption || ""} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                      {photo.type === "youtube" ? (
+                        <>
+                          <img src={`https://img.youtube.com/vi/${getYouTubeId(photo.image)}/hqdefault.jpg`}
+                            alt={photo.caption || ""} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                            <div className="w-10 h-10 rounded-full bg-red-600 grid place-items-center">
+                              <Play className="w-5 h-5 text-white fill-white" />
+                            </div>
+                          </div>
+                        </>
+                      ) : photo.type === "video" ? (
+                        <>
+                          <video src={photo.image} className="w-full h-full object-cover" muted playsInline preload="metadata" />
+                          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                            <div className="w-10 h-10 rounded-full bg-black/50 grid place-items-center">
+                              <Play className="w-5 h-5 text-white fill-white" />
+                            </div>
+                          </div>
+                        </>
+                      ) : (
+                        <img src={photo.image} alt={photo.caption || ""} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                      )}
                       <div className="absolute inset-0 bg-black/55 opacity-0 group-hover:opacity-100 transition flex flex-col items-center justify-center gap-2 p-2">
                         {photo.caption && <p className="text-white text-[11px] font-semibold text-center line-clamp-2">{photo.caption}</p>}
                         <div className="flex gap-2">
