@@ -173,7 +173,7 @@ export default function Products() {
               >
                 <Phone className="w-4 h-4" /> Call {SITE.phone}
               </a>
-              <a href={`https://wa.me/${SITE.whatsapp}`} target="_blank" rel="noreferrer"
+              <a href={SITE.whatsappUrl} target="_blank" rel="noreferrer"
                 className="inline-flex items-center gap-2 px-7 py-3.5 rounded-full bg-[#25D366] text-white font-bold shadow-fun hover:scale-105 transition"
               >
                 💬 WhatsApp Us
@@ -219,7 +219,7 @@ export default function Products() {
                     >
                       <Phone className="w-4 h-4" /> Call to Order
                     </a>
-                    <a href={`https://wa.me/${SITE.whatsapp}`} target="_blank" rel="noreferrer"
+                    <a href={SITE.whatsappUrl} target="_blank" rel="noreferrer"
                       className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-[#25D366] text-white font-bold hover:scale-105 transition"
                     >
                       💬 WhatsApp

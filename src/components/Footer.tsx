@@ -47,8 +47,12 @@ export default function Footer() {
         <div>
           <h4 className="font-bold mb-4 text-accent">Follow Us</h4>
           <div className="flex gap-3">
-            {[Facebook, Instagram, Youtube].map((Icon, i) => (
-              <a key={i} href="#" className="w-10 h-10 rounded-full bg-white/10 grid place-items-center hover:bg-primary hover:scale-110 transition">
+            {[
+              { Icon: Facebook, href: "https://www.facebook.com/hckdinajpur/" },
+              { Icon: Instagram, href: "https://www.instagram.com/hoichoikhelaghor/" },
+              { Icon: Youtube, href: "https://www.youtube.com/@hoichoikhelaghor" },
+            ].map(({ Icon, href }, i) => (
+              <a key={i} href={href} target="_blank" rel="noreferrer" className="w-10 h-10 rounded-full bg-white/10 grid place-items-center hover:bg-primary hover:scale-110 transition">
                 <Icon className="w-5 h-5" />
               </a>
             ))}

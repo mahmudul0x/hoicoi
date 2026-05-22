@@ -507,7 +507,7 @@ function ContactCTA() {
           <a href={`tel:${SITE.phone}`} className="px-7 py-4 rounded-full bg-white text-primary font-bold shadow-fun hover:scale-105 transition inline-flex items-center gap-2">
             <Phone className="w-5 h-5" /> Call {SITE.phone}
           </a>
-          <a href={`https://wa.me/${SITE.whatsapp}`} target="_blank" rel="noreferrer" className="px-7 py-4 rounded-full bg-[#25D366] text-white font-bold shadow-fun hover:scale-105 transition inline-flex items-center gap-2">
+          <a href={SITE.whatsappUrl} target="_blank" rel="noreferrer" className="px-7 py-4 rounded-full bg-[#25D366] text-white font-bold shadow-fun hover:scale-105 transition inline-flex items-center gap-2">
             💬 WhatsApp Us
           </a>
         </div>

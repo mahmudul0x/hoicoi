@@ -49,6 +49,14 @@ const memberships = [
     color: "from-primary to-pink",
     icon: Crown,
   },
+  {
+    name: "6 Months",
+    price: "4,000",
+    note: "যত খুশি ততবার",
+    sub: "Unlimited visits for 6 months",
+    color: "from-accent to-primary",
+    icon: Star,
+  },
 ];
 
 const perks = [
@@ -149,7 +157,7 @@ export default function Packages() {
             </p>
           </div>
 
-          <div className="grid sm:grid-cols-2 gap-6 max-w-2xl mx-auto">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 max-w-4xl mx-auto">
             {memberships.map((m, i) => (
               <motion.div
                 key={m.name}

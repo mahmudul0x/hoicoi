@@ -1,6 +1,7 @@
-import { motion } from "framer-motion";
+import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { Link } from "react-router-dom";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, X, Clock, Users, Star } from "lucide-react";
 import PageHero from "@/components/PageHero";
 import { usePageView } from "@/hooks/useAnalytics";
 import ballHouseImg from "@/assets/ball-house.jpg";
@@ -73,48 +74,87 @@ const zones = [
   },
 ];
 
-const playActivities = [
+type Activity = {
+  emoji: string;
+  title: string;
+  image: string;
+  color: string;
+  age: string;
+  duration: string;
+  desc: string;
+  highlights: string[];
+};
+
+const playActivities: Activity[] = [
   {
     emoji: "⚽",
     title: "Ball House",
     image: ballHouseImg,
     color: "from-secondary to-highlight",
+    age: "1 – 10 yrs",
+    duration: "Unlimited",
+    desc: "Dive into thousands of colorful balls in our giant ball pit! Kids can splash, jump and laugh to their hearts' content in a fully padded, safe environment. Perfect for building motor skills and sensory development.",
+    highlights: ["Thousands of colorful balls", "Fully padded walls & floor", "Safe for toddlers", "Supervised at all times"],
   },
   {
     emoji: "🛝",
     title: "Slides",
     image: slidesImg,
     color: "from-primary to-pink",
+    age: "2 – 10 yrs",
+    duration: "Unlimited",
+    desc: "Our exciting slides offer thrills for every age — from gentle baby slides to fast twisting ones. Safe padded landings and trained staff ensure every ride is both fun and secure.",
+    highlights: ["Multiple slide heights", "Padded safe landings", "Staff supervised", "Indoor weather-proof"],
   },
   {
     emoji: "🧗",
     title: "Climbing",
     image: climbingImg,
     color: "from-highlight to-secondary",
+    age: "3 – 10 yrs",
+    duration: "Unlimited",
+    desc: "Build strength, confidence and coordination on our colorful climbing structures. Kids challenge themselves at their own pace while our trained staff stay close for safety.",
+    highlights: ["Multiple grip levels", "Builds coordination", "Safety harness available", "Boosts confidence"],
   },
   {
     emoji: "🤸",
     title: "Trampoline",
     image: trampolineImg,
     color: "from-accent to-primary",
+    age: "3 – 10 yrs",
+    duration: "Unlimited",
+    desc: "Bounce to new heights on our safety-netted trampolines! Kids burn energy, improve balance, and have an absolute blast. Available in junior and standard sizes.",
+    highlights: ["Full safety netting", "Junior & standard sizes", "Balance & fitness", "High energy fun"],
   },
   {
     emoji: "🎠",
     title: "Merry-Go-Round",
     image: merryGoRoundImg,
     color: "from-pink to-accent",
+    age: "1 – 8 yrs",
+    duration: "Unlimited",
+    desc: "A classic spinning ride that never gets old! Our Merry-Go-Round spins gently for the little ones, bringing smiles and laughter every time. A must-try for every visit.",
+    highlights: ["Gentle safe speed", "Perfect for toddlers", "Classic fun", "Always supervised"],
   },
   {
     emoji: "🚲",
     title: "Paddle Bike",
     image: paddleBikeImg,
     color: "from-highlight to-primary",
+    age: "2 – 10 yrs",
+    duration: "Unlimited",
+    desc: "Pedal around our indoor track on fun colorful bikes! Paddle biking builds leg strength, coordination and independence in a safe, enclosed space.",
+    highlights: ["Various bike sizes", "Indoor safe track", "Builds leg strength", "Fun for all ages"],
   },
   {
     emoji: "📚",
     title: "Book Reading",
     image: "https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?w=500&q=80",
     color: "from-secondary to-pink",
+    age: "1 – 10 yrs",
+    duration: "Unlimited",
+    desc: "A cozy, quiet corner filled with colorful children's books. Perfect for kids who love stories or need a calm break between activities. Parents are welcome to read together!",
+    highlights: ["Wide book collection", "Cozy seating", "Quiet calm space", "Parents welcome"],
   },
 ];
 
@@ -127,6 +167,7 @@ const included = [
 
 export default function Activities() {
   usePageView("activities");
+  const [selected, setSelected] = useState<Activity | null>(null);
 
   return (
     <>
@@ -160,18 +201,12 @@ export default function Activities() {
                 whileHover={{ y: -5 }}
                 className="group bg-card border border-border/50 rounded-3xl overflow-hidden shadow-card hover:shadow-fun transition-all"
               >
-                {/* Image */}
                 <div className="relative h-32 overflow-hidden">
-                  <img
-                    src={z.image}
-                    alt={z.title}
-                    loading="lazy"
-                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                  />
+                  <img src={z.image} alt={z.title} loading="lazy"
+                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
                   <div className={`absolute inset-0 bg-gradient-to-t ${z.color} opacity-50`} />
                   <span className="absolute top-2 right-2 text-xl drop-shadow-lg">{z.emoji}</span>
                 </div>
-                {/* Title */}
                 <div className="px-3 py-3 text-center">
                   <p className="font-bold text-xs leading-snug">{z.title}</p>
                 </div>
@@ -180,7 +215,7 @@ export default function Activities() {
           </div>
         </div>
 
-        {/* Play activities */}
+        {/* Play activities — clickable */}
         <div>
           <div className="text-center max-w-xl mx-auto mb-10">
             <span className="inline-block px-4 py-1.5 rounded-full bg-secondary/10 text-secondary text-xs font-bold uppercase tracking-widest mb-3">
@@ -189,33 +224,37 @@ export default function Activities() {
             <h2 className="font-display text-3xl md:text-4xl font-bold">
               Play <span className="text-gradient">Activities</span>
             </h2>
+            <p className="text-muted-foreground text-sm mt-3">Tap any activity to learn more</p>
           </div>
 
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-5">
             {playActivities.map((a, i) => (
-              <motion.div
+              <motion.button
                 key={a.title}
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: (i % 4) * 0.08 }}
                 whileHover={{ y: -5 }}
-                className="group bg-card border border-border/50 rounded-3xl overflow-hidden shadow-card hover:shadow-fun transition-all"
+                onClick={() => setSelected(a)}
+                className="group bg-card border border-border/50 rounded-3xl overflow-hidden shadow-card hover:shadow-fun transition-all text-left w-full"
               >
                 <div className="relative aspect-[4/3] overflow-hidden">
-                  <img
-                    src={a.image}
-                    alt={a.title}
-                    loading="lazy"
-                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                  />
+                  <img src={a.image} alt={a.title} loading="lazy"
+                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
                   <div className={`absolute inset-0 bg-gradient-to-t ${a.color} opacity-40`} />
                   <span className="absolute top-2 right-2 text-2xl drop-shadow-lg">{a.emoji}</span>
+                  <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition flex items-center justify-center">
+                    <span className="text-white text-xs font-bold bg-white/20 backdrop-blur px-3 py-1.5 rounded-full border border-white/30">
+                      View Details
+                    </span>
+                  </div>
                 </div>
-                <div className="px-4 py-3 text-center">
+                <div className="px-4 py-3">
                   <p className="font-bold text-sm">{a.title}</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">{a.age}</p>
                 </div>
-              </motion.div>
+              </motion.button>
             ))}
           </div>
         </div>
@@ -245,10 +284,8 @@ export default function Activities() {
                 </div>
               ))}
             </div>
-            <Link
-              to="/packages"
-              className="shrink-0 inline-flex items-center gap-2 bg-white text-primary px-7 py-3.5 rounded-full font-bold text-sm hover:scale-105 transition shadow-fun"
-            >
+            <Link to="/packages"
+              className="shrink-0 inline-flex items-center gap-2 bg-white text-primary px-7 py-3.5 rounded-full font-bold text-sm hover:scale-105 transition shadow-fun">
               See Pricing <ArrowRight className="w-4 h-4" />
             </Link>
           </div>
@@ -270,6 +307,78 @@ export default function Activities() {
         </div>
 
       </section>
+
+      {/* Activity Detail Modal */}
+      <AnimatePresence>
+        {selected && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setSelected(null)}
+            className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4"
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.92, y: 24 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.92, y: 24 }}
+              transition={{ type: "spring", damping: 25, stiffness: 300 }}
+              onClick={(e) => e.stopPropagation()}
+              className="w-full max-w-lg bg-card rounded-3xl overflow-hidden shadow-card border border-border/50"
+            >
+              {/* Image */}
+              <div className="relative h-56 overflow-hidden">
+                <img src={selected.image} alt={selected.title}
+                  className="w-full h-full object-cover" />
+                <div className={`absolute inset-0 bg-gradient-to-t ${selected.color} opacity-50`} />
+                <span className="absolute top-4 left-4 text-4xl drop-shadow-lg">{selected.emoji}</span>
+                <button onClick={() => setSelected(null)}
+                  className="absolute top-4 right-4 w-9 h-9 rounded-full bg-black/60 backdrop-blur text-white grid place-items-center hover:bg-black/80 transition">
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              {/* Content */}
+              <div className="p-7">
+                <h2 className="font-display text-2xl font-bold mb-1">{selected.title}</h2>
+
+                {/* Meta */}
+                <div className="flex items-center gap-4 mb-4">
+                  <span className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground">
+                    <Users className="w-3.5 h-3.5 text-primary" /> Age: {selected.age}
+                  </span>
+                  <span className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground">
+                    <Clock className="w-3.5 h-3.5 text-primary" /> {selected.duration}
+                  </span>
+                </div>
+
+                <p className="text-muted-foreground text-sm leading-relaxed mb-5">{selected.desc}</p>
+
+                {/* Highlights */}
+                <div className="grid grid-cols-2 gap-2 mb-6">
+                  {selected.highlights.map((h) => (
+                    <div key={h} className="flex items-center gap-2 bg-primary/8 rounded-xl px-3 py-2">
+                      <Star className="w-3.5 h-3.5 text-primary shrink-0" />
+                      <span className="text-xs font-semibold">{h}</span>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="flex gap-3">
+                  <Link to="/packages"
+                    className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl bg-gradient-primary text-primary-foreground font-bold text-sm shadow-fun hover:opacity-90 transition">
+                    See Pricing <ArrowRight className="w-4 h-4" />
+                  </Link>
+                  <button onClick={() => setSelected(null)}
+                    className="px-5 py-3 rounded-xl bg-muted text-muted-foreground font-semibold text-sm hover:bg-foreground hover:text-background transition">
+                    Close
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </>
   );
 }

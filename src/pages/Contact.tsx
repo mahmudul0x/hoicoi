@@ -84,7 +84,7 @@ export default function Contact() {
             <div className="px-8 py-6 flex-1 grid grid-cols-2 gap-6 content-start">
               {[
                 { icon: Phone, label: "Phone", value: SITE.phone, href: `tel:${SITE.phone}` },
-                { icon: MessageCircle, label: "WhatsApp", value: SITE.phone, href: `https://wa.me/${SITE.whatsapp}`, external: true },
+                { icon: MessageCircle, label: "WhatsApp", value: SITE.phone, href: SITE.whatsappUrl, external: true },
                 { icon: Mail, label: "Email", value: SITE.email, href: `mailto:${SITE.email}` },
                 { icon: Clock, label: "Hours", value: "Sat–Thu: 3 PM – 9 PM", value2: "Fri & Govt. Holiday: 9:30 AM – 10 PM", href: null },
                 { icon: MapPin, label: "Address", value: SITE.address, href: null, full: true },
@@ -115,7 +115,7 @@ export default function Contact() {
                 className="flex items-center justify-center gap-2 py-3 rounded-xl bg-primary text-primary-foreground font-bold text-sm hover:opacity-90 transition">
                 <Phone className="w-4 h-4" /> Call Now
               </a>
-              <a href={`https://wa.me/${SITE.whatsapp}`} target="_blank" rel="noreferrer"
+              <a href={SITE.whatsappUrl} target="_blank" rel="noreferrer"
                 className="flex items-center justify-center gap-2 py-3 rounded-xl bg-[#25D366] text-white font-bold text-sm hover:opacity-90 transition">
                 <MessageCircle className="w-4 h-4" /> WhatsApp
               </a>

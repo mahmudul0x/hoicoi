@@ -22,7 +22,7 @@ export default function About() {
           <motion.div initial={{ opacity: 0, x: 40 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }}>
             <h2 className="font-display text-4xl md:text-5xl font-bold">Welcome to <span className="text-gradient">Hoichoi Khelaghor</span></h2>
             <p className="mt-5 text-lg text-muted-foreground leading-relaxed">
-              Hoichoi Khelaghor (হইচই খেলাঘর) is Dinajpur's premier indoor kids play zone — a vibrant, safe and imaginative space where children aged 2 to 12 can run wild, dream big and create unforgettable memories.
+              Hoichoi Khelaghor (হইচই খেলাঘর) is Dinajpur's premier indoor kids play zone — a vibrant, safe and imaginative space where children aged 1 to 10 can run wild, dream big and create unforgettable memories.
             </p>
             <p className="mt-3 text-muted-foreground leading-relaxed">
               We were born from a simple wish: every child in our city deserves a magical place to play, learn and grow — no matter the weather. From our giant ball pit to climbing structures, slides, trampolines and creative zones, every inch is built around joy.
@@ -76,9 +76,9 @@ export default function About() {
       <section className="container pb-24">
         <div className="rounded-5xl bg-gradient-fun p-10 md:p-14 text-white grid grid-cols-2 md:grid-cols-4 gap-8 text-center shadow-fun">
           {[
-            { v: 5000, s: "+", l: "Happy Kids" },
-            { v: 200, s: "+", l: "Birthday Parties" },
-            { v: 12000, s: "+", l: "Happy Visits" },
+            { v: 1000, s: "+", l: "Happy Kids" },
+            { v: 20, s: "+", l: "Birthday Parties" },
+            { v: 500, s: "+", l: "Happy Visits" },
             { v: 100, s: "%", l: "Safe & Loved" },
           ].map((s, i) => (
             <div key={i}>
